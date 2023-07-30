@@ -1,11 +1,13 @@
-export default class Chat {
-  createdAt: number
-  content: string
+import { ulid } from 'ulidx'
 
+export default class Chat {
+  createdAt: string
+  content: string
+  
   constructor(
     content: string
   ) {
-    this.createdAt = Date.now()
+    this.createdAt = ulid()
     this.content = content
   }
 }

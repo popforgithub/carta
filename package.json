@@ -31,6 +31,7 @@
     "serverless-cloudfront-invalidate": "^1.12.2",
     "serverless-s3-sync": "^3.1.0",
     "ts-node-dev": "^2.0.0",
+    "ulidx": "^2.1.0",
     "wscat": "^5.2.0"
   }
 }
