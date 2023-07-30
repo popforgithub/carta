@@ -1,0 +1,209 @@
+service: test
+frameworkVersion: '3'
+
+useDotenv: true
+
+plugins: # serverlessで使用するplugin ./package.json内に記載しています
+  - serverless-s3-sync # serverless deploy時にLocalのディレクトリ、ファイルをS3にSyncするプラグイン
+  - serverless-cloudfront-invalidate # これによりデプロイするたびに CloudFront のキャッシュが消えます。
+
+provider:
+  name: aws
+  stage: ${opt:stage} # デプロイ時、「serverless deploy --stage dev(or prod)」みたいな形でデプロイするステージを変更できる
+  region: ${env:AWS_DEFAULT_REGION}
+  runtime: nodejs18.x
+  logRetentionInDays: 7 # ログの保持期間
+  environment:
+    TZ: 'Asia/Tokyo'
+    NUXT_VERSION: ${env:NUXT_VERSION}
+    NUXT_AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+    NUXT_AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+    NUXT_REGION: ${env:AWS_DEFAULT_REGION}
+    # DATABASE_URL: "file:./dev.sqlite"
+  stackTags: # serverlessでデプロイするリソースに付けるタグ,tagsにするとlambdaだけにタグが付く
+    CreateOwner: pop # 初回構築者
+    Environment: ${opt:stage} # 環境名（prod/dev/staging/office/demo）
+    Name: test # サブドメインに類するもの、または一言でシステムを特定出来るもの
+    Owner: pop # 構築者（リソース管理者）
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/*"
+  websocketsApiName: ${opt:stage}-test-ws-server
+  websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+package:
+  individually: true
+functions:
+  NuxtSsrEngine:
+    handler: '.output/server/index.handler'
+    url: true # Lambda function URLを有効
+    package:
+      individually: true
+      patterns:
+        - '!**'
+        - '.output/**' # nuxt run buildの出力ディレクトリ
+  websocketApp:
+    handler: ./.output-ws/handler.websocketApp
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+      - websocket:
+          route: sendMessageToAll
+    package:
+      individually: true
+      patterns:
+        - '!**'
+        - '.output-ws/**'
+
+# --- front ---
+custom:
+  s3Sync: # serverless-s3-syncプラグインが入っていると以下が利用可能
+    - bucketName: ${self:service}-${opt:stage}-assetsbucket
+      localDir: '.output/public'
+      params:
+        - "*":
+          CacheControl: 'max-age=300' # 5分
+  cloudfrontInvalidate: # cloudfrontのキャッシュ削除
+    - distributionIdKey: DistributionId
+      items:
+        - "/*"
+
+resources:
+  Resources:
+    # 静的リソース配信用のS3バケット
+    StaticResourceBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        # グローバルで一意な名前を指定してください
+        BucketName: ${self:service}-${opt:stage}-assetsbucket
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods:
+                - GET
+                - HEAD
+              AllowedOrigins:
+                - '*'
+    # S3 bucket policy to allow access from CloudFront OAC
+    AssetsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref StaticResourceBucket
+        PolicyDocument:
+          Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub ${StaticResourceBucket.Arn}/*
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AssetsDistribution}
+    # s3へのアクセス制限をするためのOACを作成
+    CloudFrontOriginAccessControl:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties: 
+        OriginAccessControlConfig:
+          Name: !Ref AWS::StackName
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+    # 静的コンテンツ配信用CloudFront
+    AssetsDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          HttpVersion: http2
+          Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt StaticResourceBucket.DomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+          - Id: "nuxt-ssr-engine"
+            DomainName: !Select [2, !Split ["/", !GetAtt NuxtSsrEngineLambdaFunctionUrl.FunctionUrl]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+          # DefaultRootObject: index.html
+          Comment: !Sub ${AWS::StackName} distribution
+          DefaultCacheBehavior:
+            TargetOriginId: nuxt-ssr-engine
+            ForwardedValues:
+              QueryString: false
+              Headers:
+                - origin
+            # CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS Managed Cache Policy(CachingOptimized)
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS Managed Cache Policy(CachingDisabled)
+            ViewerProtocolPolicy: redirect-to-https
+          CacheBehaviors:
+            - PathPattern: "/favicon.ico"
+              TargetOriginId: S3Origin
+              ViewerProtocolPolicy: redirect-to-https
+              CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS Managed Cache Policy(CachingOptimized)
+              # CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS Managed Cache Policy(CachingDisabled)
+            # - PathPattern: "/image/*"
+            #   TargetOriginId: S3Origin
+            #   ViewerProtocolPolicy: redirect-to-https
+            #   CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS Managed Cache Policy(CachingOptimized)
+              # CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS Managed Cache Policy(CachingDisabled)
+            - PathPattern: "/_nuxt/*"
+              TargetOriginId: S3Origin
+              ViewerProtocolPolicy: redirect-to-https
+              CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS Managed Cache Policy(CachingOptimized)
+              # CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS Managed Cache Policy(CachingDisabled)
+            - PathPattern: "/api/*"
+              TargetOriginId: nuxt-ssr-engine
+              ViewerProtocolPolicy: redirect-to-https
+              # CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS Managed Cache Policy(CachingOptimized)
+              # CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS Managed Cache Policy(CachingDisabled)
+              ForwardedValues:
+                QueryString: true
+                Headers:
+                  - origin
+              DefaultTTL: 0
+              MaxTTL: 0
+              MinTTL: 0
+              AllowedMethods:
+                - GET
+                - HEAD
+                - OPTIONS
+                - PUT
+                - POST
+                - PATCH
+                - DELETE
+    DynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        # set Partition Key / Sort Key
+        AttributeDefinitions:
+          - AttributeName: createdAt
+            AttributeType: N
+        # set the type of key
+        KeySchema:
+          - AttributeName: createdAt
+            KeyType: HASH
+        # set CapacityUnits
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        # set table name
+        TableName: chats
+            
+  Outputs:
+    CfUrl:
+      Value: !Sub "https://${AssetsDistribution.DomainName}"
+    # BucketName:
+    #   Value: !Ref AssetsBucket
+    DistributionId:
+      Value: !Ref AssetsDistribution
+        

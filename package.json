@@ -1,0 +1,36 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "ws-server": "MAPPING_KEY=action ts-node-dev --inspect=9229 --clear --respawn ws-server/handler.ts",
+    "ws-server-build": "MAPPING_KEY=action ./node_modules/.bin/esbuild ws-server/handler.ts --platform=node --bundle --outfile=.output-ws/handler.js",
+    "wscat": "wscat -c ws://localhost:5000",
+    "dev-deploy": "npx serverless deploy --stage dev --verbose",
+    "dev-remove": "npx serverless remove --stage dev --verbose"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@types/node": "^18.16.19",
+    "nuxt": "^3.6.0",
+    "sass": "^1.63.6",
+    "typescript": "^5.1.6",
+    "vite-plugin-vuetify": "^1.0.2",
+    "vuetify": "^3.3.5"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.370.0",
+    "@aws-sdk/lib-dynamodb": "^3.370.0",
+    "aws-lambda-ws-server": "^0.1.21",
+    "reconnecting-websocket": "^4.4.0",
+    "serverless": "^3.33.0",
+    "serverless-cloudfront-invalidate": "^1.12.2",
+    "serverless-s3-sync": "^3.1.0",
+    "ts-node-dev": "^2.0.0",
+    "wscat": "^5.2.0"
+  }
+}
