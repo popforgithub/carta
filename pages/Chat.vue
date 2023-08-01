@@ -3,8 +3,8 @@ import { ref } from 'vue';
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
 const message = ref('')
-const users = ref([])
-const { data: lists } = await useLazyFetch('/api/users',
+const chats = ref([])
+const { data: lists } = await useLazyFetch('/api/chat',
   { 
     method: 'get',
     headers: {
@@ -29,19 +29,19 @@ const sendMessage = () => {
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
   // const senderId = JSON.parse(event.data).id 
-  // const user = JSON.parse(event.data).echo
-  // users.value.unshift(user)
-//   await useFetch('/api/users',
-//     { 
-//       method: 'post',
-//       body: { 
-//         content: message.value
-//       },
-//       headers: {
-//         'Content-Type': 'application/json'
-//       }
-//     }
-//   )
+  const chat = JSON.parse(event.data).echo
+  chats.value.unshift(chat)
+  await useFetch('/api/chat',
+    { 
+      method: 'post',
+      body: { 
+        content: message.value
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
 }
 
 const closeConnection = () => {
@@ -56,13 +56,13 @@ const closeConnection = () => {
     <v-text-field v-model="message" label="text here"/>
     <v-btn color="success" @click="sendMessage">Send</v-btn>
     <v-list>
-      <v-list-item v-for="(t, i) in users" :key="i">
+      <v-list-item v-for="(t, i) in chats" :key="i">
         {{ t }}
       </v-list-item>
       <v-list-item v-for="(t, i) in lists" :key="i">
-        [id:{{ t.id }}] [name:{{ t.name }}]
+        {{ t.content }}
       </v-list-item>
     </v-list>
-    <NuxtLink to="/user">Chat</NuxtLink>
+    <NuxtLink to="/secondpage">Secondpage</NuxtLink>
   </div>
 </template>
