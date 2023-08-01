@@ -6,9 +6,9 @@ export default class User {
 
   constructor(
     id: UserId,
-    name: string 
+    name?: string 
   ) {
     this.id = id
-    this.name = name
+    this.name = name ? name : 'NoName'
   }
 }
