@@ -5,9 +5,10 @@ export default class User {
   name: string
 
   constructor(
+    id: UserId,
     name: string 
   ) {
-    this.id = new UserId
+    this.id = id
     this.name = name
   }
 }

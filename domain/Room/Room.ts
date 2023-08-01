@@ -3,12 +3,16 @@ import RoomId from './RoomId'
 
 export default class Room {
   readonly id: RoomId
+  name: string
   userIds: Array<UserId>
+  isOpen: boolean
 
   constructor(
-    userIds: Array<UserId>
+    name: string
   ) {
     this.id = new RoomId
-    this.userIds = userIds
+    this.name = name
+    this.userIds = []
+    this.isOpen = true
   }
 }
