@@ -11,7 +11,7 @@ export default defineEventHandler(async () => {
   const usersResponse: UsersResponse = userList.map((user) => {
     return {
       id: user.id.value,
-      name: user.name
+      name: user.name.value
     }
   })
 

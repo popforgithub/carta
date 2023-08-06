@@ -1,8 +1,8 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
-import IUserRepository from '~/domain/interfaces/IUserRepository'
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb"
+import User from "~/domain/User"
 import UserId from "~/domain/User/UserId"
-import User from "../../domain/User/User"
+import IUserRepository from '~/domain/interfaces/IUserRepository'
 
 const tableName = 'users'
 const runtimeConfig = useRuntimeConfig()
@@ -35,15 +35,13 @@ export default class UserDynamoDBRepository implements IUserRepository {
     const response = await this._docClient.send(command)
     if (response.Items) {
       const userList = response.Items.map((user) => {
-        if (user.id['S']) {
+        if (user.id['S'] && user.name['S']) {
           return new User(
-            new UserId(user.id['S']),
+            user.id['S'],
             user.name['S']
           )
         } else {
-          return new User(
-            new UserId('undefined'),
-            user.name['S'])
+          throw new Error('userIDかuserNameが空のものgetAllした') 
         }
       })
       return userList
@@ -52,14 +50,24 @@ export default class UserDynamoDBRepository implements IUserRepository {
     }
   }
 
-  // async create(id: UserId): Promise<void> {
-  //   const command = new PutCommand({
-  //     TableName: this._tableName,
-  //     Item: {
-  //       createdAt: user.createdAt,
-  //       content: user.content,
-  //     }
-  //   })
-  //   await this._docClient.send(command)
-  // }
+  async create(user: User): Promise<void> {
+    const command = new PutCommand({
+      TableName: this._tableName,
+      Item: {
+        id: user.id.value,
+        name: user.name.value,
+      }
+    })
+    await this._docClient.send(command)
+  }
+
+  async delete(userid: UserId): Promise<void> {
+    const command = new DeleteCommand({
+      TableName: this._tableName,
+      Key: {
+        id: userid.value
+      }
+    })
+    await this._docClient.send(command)
+  }
 }

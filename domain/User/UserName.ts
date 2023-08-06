@@ -1,5 +1,5 @@
-export default class UserId {
-  readonly value: string
+export default class UserName {
+  value: string
 
   constructor(value: string) {
     this.value = value

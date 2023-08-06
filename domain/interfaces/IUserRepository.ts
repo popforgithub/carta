@@ -1,5 +1,5 @@
 import UserId from "~/domain/User/UserId"
-import User from "~/domain/User/User"
+import User from "../User"
 
 export default interface IUserRepository {
 
@@ -7,7 +7,7 @@ export default interface IUserRepository {
 
   findById(id: UserId): Promise<User>
 
-  create(id: UserId): Promise<void>
+  create(user: User): Promise<void>
 
   update(id: UserId): Promise<void>
 

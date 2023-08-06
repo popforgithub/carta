@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import ReconnectingWebSocket from 'reconnecting-websocket'
+import { ulid } from 'ulidx';
 
-const message = ref('')
+const session = useCookie('session')
+
+const inputUserName: Ref<string> = ref('')
+const inputUserId: Ref<string> = ref('')
+
 const users = ref([])
-const { data: lists } = await useLazyFetch('/api/users',
+const { data: userList } = await useLazyFetch('/api/users',
   { 
     method: 'get',
     headers: {
@@ -49,17 +54,59 @@ const closeConnection = () => {
   ws.close()
 }
 
+const createUser = async () => {
+  session.value = ulid()
+  await useFetch('/api/users',
+    { 
+      method: 'post',
+      body: { 
+        id: session.value,
+        name: inputUserName.value
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+}
+
+const deleteUser = async () => {
+  await useFetch('/api/users/:id',
+    { 
+      method: 'delete',
+      params: { id: inputUserId.value },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+}
 </script>
 
+<!-- <template>
+  <div v-if="!session">
+    <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
+    <v-btn @click="createUser">createUser</v-btn>
+  </div>
+  <div v-else>
+    <v-list>
+      <v-list-item v-for="(t, i) in userList" :key="i">
+        [id:{{ t.id }}] [name:{{ t.name }}]
+      </v-list-item>
+    </v-list>
+    <NuxtLink to="/user">Chat</NuxtLink>
+  </div>
+</template> -->
 <template>
   <div>
-    <v-text-field v-model="message" label="text here"/>
-    <v-btn color="success" @click="sendMessage">Send</v-btn>
+    <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
+    <v-btn @click="createUser">createUser</v-btn>
+    <v-text-field v-model="inputUserId" label="削除したいID入力してください"/>
+    <v-btn @click="deleteUser">deleteUser</v-btn>
+  </div>
+  <div>
     <v-list>
-      <v-list-item v-for="(t, i) in users" :key="i">
-        {{ t }}
-      </v-list-item>
-      <v-list-item v-for="(t, i) in lists" :key="i">
+      <v-list-item v-for="(t, i) in userList" :key="i">
         [id:{{ t.id }}] [name:{{ t.name }}]
       </v-list-item>
     </v-list>
