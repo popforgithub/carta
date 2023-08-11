@@ -1,5 +1,6 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb"
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb"
+import { useError } from "nuxt/app"
 import User from "~/domain/User"
 import UserId from "~/domain/User/UserId"
 import IUserRepository from '~/domain/interfaces/IUserRepository'
@@ -50,6 +51,28 @@ export default class UserDynamoDBRepository implements IUserRepository {
     }
   }
 
+  async findById(userId: UserId): Promise<User> {
+    const command = new GetCommand({
+      TableName: this._tableName,
+      Key: {
+        id: userId.value
+      }
+    })
+    
+    const response = await this._docClient.send(command)
+    if (response.Item) {
+      return new User(
+        response.Item.id,
+        response.Item.name
+      )
+    } else {
+      return new User(
+        'undefined',
+        'undefined'
+      )
+    }
+  }
+
   async create(user: User): Promise<void> {
     const command = new PutCommand({
       TableName: this._tableName,
@@ -61,11 +84,11 @@ export default class UserDynamoDBRepository implements IUserRepository {
     await this._docClient.send(command)
   }
 
-  async delete(userid: UserId): Promise<void> {
+  async delete(userId: UserId): Promise<void> {
     const command = new DeleteCommand({
       TableName: this._tableName,
       Key: {
-        id: userid.value
+        id: userId.value
       }
     })
     await this._docClient.send(command)

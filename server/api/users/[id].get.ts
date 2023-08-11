@@ -1,17 +1,21 @@
 import userDynamoDBRepository from "~/server/infra/userDynamoDBRepository"
 import UserId from "~/domain/User/UserId"
-import { json } from "stream/consumers"
-import { QueryObject } from "ufo"
+
+type UserResponse = {
+  id: string,
+  name: string
+}
 
 export default defineEventHandler(async (event) => {
-  const params: QueryObject = getQuery(event)
+  const params = getQuery(event)
   // QueryObjectをstringに変換
   const paramsId: string = JSON.parse(JSON.stringify(params.id))
   const userId = new UserId(paramsId)
   const repository = new userDynamoDBRepository()
-  await repository.delete(userId)
-
-  event.node.res.statusCode = 204
-  event.node.res.statusMessage = "Deleted"
-  event.node.res.end()
+  const user = await repository.findById(userId)
+  const userResponse: UserResponse = {
+    id: user.id.value,
+    name: user.name.value
+  }
+  return userResponse
 })
