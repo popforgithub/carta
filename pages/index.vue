@@ -2,13 +2,13 @@
 import { ref } from 'vue';
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import { ulid } from 'ulidx';
+import User from '~/domain/User';
 
 const session = useCookie('session')
 
 const inputUserName: Ref<string> = ref('')
-const inputUserId: Ref<string> = ref('')
-
-const users = ref([])
+let sessionUser: Ref<{id: string, name: string}> = ref()
+const inputUserId: string = ''
 const { data: userList } = await useLazyFetch('/api/users',
   { 
     method: 'get',
@@ -17,7 +17,6 @@ const { data: userList } = await useLazyFetch('/api/users',
     }
   }
 )
-
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -54,14 +53,30 @@ const closeConnection = () => {
   ws.close()
 }
 
+const findUserById = async (session) => {
+  const { data: userResponse } = await useFetch('/api/users/:id',
+    { 
+      method: 'get',
+      params: { id: session},
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  return userResponse
+}
+if (session) {
+  sessionUser = await findUserById(session)
+}
+
 const createUser = async () => {
   session.value = ulid()
   await useFetch('/api/users',
     { 
       method: 'post',
       body: { 
-        id: session.value,
-        name: inputUserName.value
+        id: session,
+        name: inputUserName
       },
       headers: {
         'Content-Type': 'application/json'
@@ -74,7 +89,7 @@ const deleteUser = async () => {
   await useFetch('/api/users/:id',
     { 
       method: 'delete',
-      params: { id: inputUserId.value },
+      params: { id: inputUserId },
       headers: {
         'Content-Type': 'application/json'
       }
@@ -83,12 +98,10 @@ const deleteUser = async () => {
 }
 </script>
 
-<!-- <template>
-  <div v-if="!session">
+<template>
+  <div v-if="!session || sessionUser.id === 'undefined'">
     <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
     <v-btn @click="createUser">createUser</v-btn>
-  </div>
-  <div v-else>
     <v-list>
       <v-list-item v-for="(t, i) in userList" :key="i">
         [id:{{ t.id }}] [name:{{ t.name }}]
@@ -96,15 +109,8 @@ const deleteUser = async () => {
     </v-list>
     <NuxtLink to="/user">Chat</NuxtLink>
   </div>
-</template> -->
-<template>
-  <div>
-    <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
-    <v-btn @click="createUser">createUser</v-btn>
-    <v-text-field v-model="inputUserId" label="削除したいID入力してください"/>
-    <v-btn @click="deleteUser">deleteUser</v-btn>
-  </div>
-  <div>
+  <div v-else>
+    こんにちは {{ sessionUser.name }} さん
     <v-list>
       <v-list-item v-for="(t, i) in userList" :key="i">
         [id:{{ t.id }}] [name:{{ t.name }}]
