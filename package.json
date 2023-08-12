@@ -17,7 +17,7 @@
     "@nuxt/devtools": "latest",
     "@types/node": "^18.16.19",
     "nuxt": "^3.6.0",
-    "sass": "^1.63.6",
+    "sass": "^1.65.1",
     "typescript": "^5.1.6",
     "vite-plugin-vuetify": "^1.0.2",
     "vuetify": "^3.3.5"
@@ -25,6 +25,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.370.0",
     "@aws-sdk/lib-dynamodb": "^3.370.0",
+    "@mdi/font": "^7.2.96",
     "aws-lambda-ws-server": "^0.1.21",
     "reconnecting-websocket": "^4.4.0",
     "serverless": "^3.33.0",
