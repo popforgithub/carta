@@ -1,11 +1,10 @@
 @use "vuetify/styles";
 @import './_variables';
 
-export default {
-  // 画面幅767以下になるとこの設定が適用される
-  @mixin mobile {
-    @media only screen and (max-width: ($breakpoint-mobile)) {
-      @content;
-    }
+
+// 画面幅767以下になるとこの設定が適用される
+@mixin mobile {
+  @media screen and (max-width: ($breakpoint-mobile)) {
+    @content;
   }
 }

@@ -14,7 +14,7 @@ const menuItems = [
     }
   ]
 const wsConnections = 15
-const userName = 'defaultUser'
+const userName = 'あい うえお'
 const drawer: Ref<boolean> = ref(false)
 
 const openDrawer = () => {
@@ -28,7 +28,7 @@ const openDrawer = () => {
       <v-app-bar app dark>
         <v-app-bar-nav-icon id="nav-icon" @click="openDrawer()"></v-app-bar-nav-icon>
         <v-app-bar-title id="title">CARTA ONLINE</v-app-bar-title>
-        <v-tabs>
+        <v-tabs id="v-tabs-for-pc">
           <v-tab v-for="(menuItem, index) in menuItems" :key="index">
             {{ menuItem.name }}
           </v-tab>
@@ -43,7 +43,7 @@ const openDrawer = () => {
           <p> {{ userName }} さん</p>
         </v-layout>
       </v-app-bar>
-      <v-navigation-drawer v-model="drawer" fixed temporary>
+      <v-navigation-drawer id="v-navigation-drawer-for-mobile" v-model="drawer" fixed temporary>
         <v-list nav dense>
           <v-list-item-group>
             <v-list-item v-for="(menuItem, index) in menuItems" :key="index">
@@ -58,20 +58,36 @@ const openDrawer = () => {
 </template>
 
 <style lang="scss" scoped>
-#title {
-  max-width: 175px;
-  min-width: 175px;
-  background-color: red;
+@import '@/assets/main';
+#nav-icon {
+  display: none;
   @include mobile {
-    background-color: yellow;
+    display: block;
   }
 }
+#title {
+  max-width: 180px;
+  min-width: 180px;
+}
+#v-tabs-for-pc {
+  @include mobile {
+    display: none;
+  }
+  .v-tab {
+  padding-left: 15px;
+}
+}
 #ws-connections {
-  max-width: 70px;
-  min-width: 70px;
+  max-width: 50px;
+  min-width: 50px;
 }
 #user-info {
-  max-width: 200px;
-  min-width: 200px;
+  max-width: 180px;
 }
+#v-navigation-drawer-for-mobile {
+  .v-list-item-title {
+    text-align: center;
+  }
+}
+
 </style>
