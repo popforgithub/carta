@@ -1,22 +1,26 @@
 <script setup lang="ts">
 const menuItems = [
     {
-      name: 'カルタで遊ぶ',
+      name: 'PLAY',
       url: '#'
     },
     {
-      name: 'カルタを作る',
+      name: 'ROOM',
       url: '#'
     },
     {
-      name: 'データベース編集',
+      name: 'CARTA',
+      url: '#'
+    },
+    {
+      name: 'DB',
       url: '#'
     }
   ]
 const wsConnections = 15
-const userName = 'あい うえお'
+const userName = 'こんにちは'
+  
 const drawer: Ref<boolean> = ref(false)
-
 const openDrawer = () => {
   drawer.value = true
 }
@@ -74,7 +78,8 @@ const openDrawer = () => {
     display: none;
   }
   .v-tab {
-  padding-left: 15px;
+  margin-left: 15px;
+  min-width: 60px;
 }
 }
 #ws-connections {
