@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import { ulid } from 'ulidx';
-import User from '~/domain/User';
 
 const session = useCookie('session')
 
@@ -99,23 +98,25 @@ const deleteUser = async () => {
 </script>
 
 <template>
-  <div v-if="!session || sessionUser.id === 'undefined'">
-    <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
-    <v-btn @click="createUser">createUser</v-btn>
-    <v-list>
-      <v-list-item v-for="(t, i) in userList" :key="i">
-        [id:{{ t.id }}] [name:{{ t.name }}]
-      </v-list-item>
-    </v-list>
-    <NuxtLink to="/user">Chat</NuxtLink>
-  </div>
-  <div v-else>
-    こんにちは {{ sessionUser.name }} さん
-    <v-list>
-      <v-list-item v-for="(t, i) in userList" :key="i">
-        [id:{{ t.id }}] [name:{{ t.name }}]
-      </v-list-item>
-    </v-list>
-    <NuxtLink to="/user">Chat</NuxtLink>
-  </div>
+  <v-app>
+    <div v-if="!session || sessionUser.id === 'undefined'">
+      <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
+      <v-btn @click="createUser">createUser</v-btn>
+      <v-list>
+        <v-list-item v-for="(t, i) in userList" :key="i">
+          [id:{{ t.id }}] [name:{{ t.name }}]
+        </v-list-item>
+      </v-list>
+      <NuxtLink to="/user">Chat</NuxtLink>
+    </div>
+    <div v-else>
+      こんにちは {{ sessionUser.name }} さん
+      <v-list>
+        <v-list-item v-for="(t, i) in userList" :key="i">
+          [id:{{ t.id }}] [name:{{ t.name }}]
+        </v-list-item>
+      </v-list>
+      <NuxtLink to="/user">Chat</NuxtLink>
+    </div>
+  </v-app>
 </template>

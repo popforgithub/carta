@@ -57,6 +57,7 @@ const openDrawer = () => {
         </v-list>
       </v-navigation-drawer>
     </header>
+    <div id="overlap-prevention"></div>
     <slot />
   </v-app>
 </template>
@@ -94,5 +95,7 @@ const openDrawer = () => {
     text-align: center;
   }
 }
-
+#overlap-prevention {
+  padding-bottom: 64px;
+}
 </style>
