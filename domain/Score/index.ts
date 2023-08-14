@@ -5,14 +5,14 @@ import UserId from '~/domain/User/UserId'
 export default class Score {
   readonly id: ScoreId
   roomId: RoomId
-  userId: UserId
+  playerId: UserId
 
   constructor(
     roomId: RoomId,
-    userId: UserId
+    playerId: UserId
   ) {
     this.id = new ScoreId
     this.roomId = roomId
-    this.userId = userId
+    this.playerId = playerId
   }
 }

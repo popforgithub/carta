@@ -4,19 +4,19 @@ type RoomsResponse = {
   id: string
   name: string
   isOpen: boolean
-  userIds: Array<string>
+  playerIds: Array<string>
 }[]
 
 export default defineEventHandler(async () => {
   const repository = new RoomDynamoDBRepository()
   const roomList = await repository.getAll()
   const roomsResponse: RoomsResponse = roomList.map((room) => {
-    const userIds = Array.isArray(room.userIds) ? room.userIds.map(userId => userId.value) : []
+    const playerIds = Array.isArray(room.playerIds) ? room.playerIds.map(playerId => playerId.value) : []
     return {
       id: room.id.value,
       name: room.name,
       isOpen: room.isOpen,
-      userIds: userIds
+      playerIds: playerIds
     }
   })
   

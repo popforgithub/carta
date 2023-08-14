@@ -39,8 +39,8 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       const id = room.id?.['S']
       const name = room.name?.['S']
       const isOpen = room.isOpen?.['BOOL']
-      const userIds = room.userIds?.['L']?.map(userId => userId['S'] || '') || []
-      return new Room(id, name, isOpen, userIds)
+      const playerIds = room.playerIds?.['L']?.map(playerId => playerId['S'] || '') || []
+      return new Room(id, name, isOpen, playerIds)
     })
 
     return roomList
@@ -59,7 +59,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       response.Item.id,
       response.Item.name,
       response.Item.isOpen,
-      response.Item.userIds
+      response.Item.playerIds
     )
   }
 
@@ -70,7 +70,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
         id: room.id.value,
         name: room.name,
         isOpen: true,
-        userIds: []
+        playerIds: []
 
       }
     })
@@ -90,10 +90,10 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
-      UpdateExpression: "set isOpen = :isOpen, userIds = :userIds",
+      UpdateExpression: "set isOpen = :isOpen, playerIds = :playerIds",
       ExpressionAttributeValues: {
         ":isOpen": room.isOpen,
-        ":userIds": room.userIds.map(userId => userId.value)
+        ":playerIds": room.playerIds.map(playerId => playerId.value)
       },
     })
     await this._docClient.send(command)

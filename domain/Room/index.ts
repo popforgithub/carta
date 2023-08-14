@@ -5,17 +5,17 @@ export default class Room {
   readonly id: RoomId
   name: string
   isOpen: boolean
-  userIds: Array<UserId>
+  playerIds: Array<UserId>
 
   constructor(
     id: string = '',
     name: string = 'no_name',
     isOpen: boolean = true,
-    userIds: Array<string> = [],
+    playerIds: Array<string> = [],
     ) {
     this.id = new RoomId(id)
     this.name = name
     this.isOpen = isOpen
-    userIds ? this.userIds = userIds.map(userId => new UserId(userId)) : this.userIds = []
+    playerIds ? this.playerIds = playerIds.map(playerId => new UserId(playerId)) : this.playerIds = []
   }
 }

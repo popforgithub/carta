@@ -5,7 +5,7 @@ type RoomResponse = {
   id: string,
   name: string,
   isOpen: boolean,
-  userIds: Array<string>
+  playerIds: Array<string>
 }
 
 export default defineEventHandler(async (event) => {
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     id: room.id.value,
     name: room.name,
     isOpen: room.isOpen,
-    userIds: room.userIds.map(userId => userId.value)
+    playerIds: room.playerIds.map(playerId => playerId.value)
   }
   return roomResponse
 })

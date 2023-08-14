@@ -7,19 +7,19 @@ const { data: roomList, refresh } = await useLazyFetch('/api/rooms',
     }
   }
 )
-const userIds = []
+const playerIds = []
 const inputUpdateRoomId: Ref<string> = ref('')
 const inputUpdateRoomIsOpen = ref()
 const inputUpdateRoomUserIds = ref()
 const updateRoom = async () => {
-  userIds.push(inputUpdateRoomUserIds.value)
+  playerIds.push(inputUpdateRoomUserIds.value)
   await useFetch('/api/rooms/:id',
     { 
       method: 'put',
       params: {
         id: inputUpdateRoomId,
         isOpen: inputUpdateRoomIsOpen,
-        userIds: userIds
+        playerIds: playerIds
       },
       headers: {
         'Content-Type': 'application/json'
