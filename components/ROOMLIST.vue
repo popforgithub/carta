@@ -76,7 +76,11 @@ const searchRoom = async () => {
 
 <template>
   <v-app>
-    <h1>component</h1>
+    <div class="card-container">
+      <room />
+      <room />
+      <room />
+    </div>
     <v-list>
       <v-list-item v-for="(t, i) in roomList" :key="i">
         {{ t }}
@@ -95,3 +99,12 @@ const searchRoom = async () => {
     {{ roomDetail }}
   </v-app>
 </template>
+
+<style scoped lang="scss">
+    .card-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 2% 0;
+  }
+</style>
