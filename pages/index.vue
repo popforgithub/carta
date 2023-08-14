@@ -100,7 +100,6 @@ const deleteUser = async () => {
 
 <template>
   <v-app>
-    <room />
     <ROOMLIST />
     <div v-if="!session">
       <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
