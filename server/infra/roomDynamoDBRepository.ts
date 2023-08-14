@@ -1,5 +1,5 @@
 import { AttributeValue, DynamoDBClient, ScanCommand, ScanCommandOutput } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb"
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import Room from "~/domain/Room"
 import RoomId from "~/domain/Room/RoomId"
 import IRoomRepository from '~/domain/interfaces/IRoomRepository'
@@ -33,9 +33,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     })
 
     const response = await this._docClient.send(command)
-    if (!response.Items) {
-      return []
-    }
+    if (!response.Items) { return [] }
 
     const roomList = response.Items.map((room) => {
       const id = room.id?.['S']
@@ -48,27 +46,22 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     return roomList
   }
 
-  // async findById(roomId: RoomId): Promise<Room> {
-  //   const command = new GetCommand({
-  //     TableName: this._tableName,
-  //     Key: {
-  //       id: roomId.value
-  //     }
-  //   })
+  async findById(roomId: RoomId): Promise<Room> {
+    const command = new GetCommand({
+      TableName: this._tableName,
+      Key: { id: roomId.value }
+    })
     
-  //   const response = await this._docClient.send(command)
-  //   if (response.Item) {
-  //     return new Room(
-  //       response.Item.id,
-  //       response.Item.name
-  //     )
-  //   } else {
-  //     return new Room(
-  //       'undefined',
-  //       'undefined'
-  //     )
-  //   }
-  // }
+    const response = await this._docClient.send(command)
+    if (!response.Item) { throw new Error('infraのfindByIdでroomが見つからない') }
+
+    return new Room(
+      response.Item.id,
+      response.Item.name,
+      response.Item.isOpen,
+      response.Item.userIds
+    )
+  }
 
   async create(room: Room): Promise<void> {
     const command = new PutCommand({
@@ -84,13 +77,25 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     await this._docClient.send(command)
   }
 
-  // async delete(roomId: RoomId): Promise<void> {
-  //   const command = new DeleteCommand({
-  //     TableName: this._tableName,
-  //     Key: {
-  //       id: roomId.value
-  //     }
-  //   })
-  //   await this._docClient.send(command)
-  // }
+  async delete(roomId: RoomId): Promise<void> {
+    const command = new DeleteCommand({
+      TableName: this._tableName,
+      Key: { id: roomId.value }
+    })
+    await this._docClient.send(command)
+  }
+
+  async update(room: Room): Promise<void> {
+    console.log('////////', room)
+    const command = new UpdateCommand({
+      TableName: this._tableName,
+      Key: { id: room.id.value },
+      UpdateExpression: "set isOpen = :isOpen, userIds = :userIds",
+      ExpressionAttributeValues: {
+        ":isOpen": room.isOpen,
+        ":userIds": room.userIds.map(userId => userId.value)
+      },
+    })
+    await this._docClient.send(command)
+  }
 }

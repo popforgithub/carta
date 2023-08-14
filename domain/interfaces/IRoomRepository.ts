@@ -10,7 +10,7 @@ export default interface IRoomRepository {
 
   create(room: Room): Promise<void>
 
-  update(id: RoomId, userId: UserId): Promise<void>
+  update(room: Room): Promise<void>
 
   delete(id: RoomId): Promise<void>
 }

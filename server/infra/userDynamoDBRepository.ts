@@ -33,9 +33,7 @@ export default class UserDynamoDBRepository implements IUserRepository {
     })
 
     const response = await this._docClient.send(command)
-    if (!response.Items) {
-      return []
-    }
+    if (!response.Items) { return [] }
 
     const userList = response.Items.map((user) => {
       const id = user.id?.['S'] || ''
@@ -49,23 +47,16 @@ export default class UserDynamoDBRepository implements IUserRepository {
   async findById(userId: UserId): Promise<User> {
     const command = new GetCommand({
       TableName: this._tableName,
-      Key: {
-        id: userId.value
-      }
+      Key: { id: userId.value }
     })
     
     const response = await this._docClient.send(command)
-    if (response.Item) {
-      return new User(
-        response.Item.id,
-        response.Item.name
-      )
-    } else {
-      return new User(
-        'undefined',
-        'undefined'
-      )
-    }
+    if (!response.Item) { throw new Error('infraのfindByIdでuserが見つからない')}
+    
+    return new User(
+      response.Item.id,
+      response.Item.name
+    )
   }
 
   async create(user: User): Promise<void> {
@@ -82,9 +73,7 @@ export default class UserDynamoDBRepository implements IUserRepository {
   async delete(userId: UserId): Promise<void> {
     const command = new DeleteCommand({
       TableName: this._tableName,
-      Key: {
-        id: userId.value
-      }
+      Key: { id: userId.value }
     })
     await this._docClient.send(command)
   }
