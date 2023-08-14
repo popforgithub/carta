@@ -1,6 +1,5 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb"
-import { useError } from "nuxt/app"
 import User from "~/domain/User"
 import UserId from "~/domain/User/UserId"
 import IUserRepository from '~/domain/interfaces/IUserRepository'
@@ -34,21 +33,17 @@ export default class UserDynamoDBRepository implements IUserRepository {
     })
 
     const response = await this._docClient.send(command)
-    if (response.Items) {
-      const userList = response.Items.map((user) => {
-        if (user.id['S'] && user.name['S']) {
-          return new User(
-            user.id['S'],
-            user.name['S']
-          )
-        } else {
-          throw new Error('userIDかuserNameが空のものgetAllした') 
-        }
-      })
-      return userList
-    } else {
+    if (!response.Items) {
       return []
     }
+
+    const userList = response.Items.map((user) => {
+      const id = user.id?.['S'] || ''
+      const name = user.name?.['S'] || ''
+      return new User(id, name)
+    })
+
+    return userList
   }
 
   async findById(userId: UserId): Promise<User> {
