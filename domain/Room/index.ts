@@ -8,11 +8,11 @@ export default class Room {
   userIds: Array<UserId>
 
   constructor(
-    id: string = 'unassignedID',
-    name: string = 'unnamedRoom',
+    id: string = '',
+    name: string = 'no_name',
     isOpen: boolean = true,
-    userIds: Array<string> = []
-  ) {
+    userIds: Array<string> = [],
+    ) {
     this.id = new RoomId(id)
     this.name = name
     this.isOpen = isOpen

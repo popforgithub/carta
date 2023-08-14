@@ -44,84 +44,53 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       const userIds = room.userIds?.['L']?.map(userId => userId['S'] || '') || []
       return new Room(id, name, isOpen, userIds)
     })
-    
+
     return roomList
   }
-  // async getAll(): Promise<Array<Room>> {
-  //   const command = new ScanCommand({
-  //     TableName: this._tableName
-  //   });
-  
-  //   const response = await this._docClient.send(command);
-  
-  //   return this.parseResponse(response);
-  // }
-  
-  // private parseResponse(response: ScanCommandOutput): Array<Room> {
-  //   if (!response.Items) {
-  //     return [];
-  //   }
-  
-  //   return response.Items.map((room) => {
-  //     const userIds = this.extractUserIds(room);
-  //     return new Room(
-  //       room.id['S'],
-  //       room.name['S'],
-  //       room.isOpen['BOOL'],
-  //       userIds
-  //     );
-  //   });
-  // }
-  
-  // private extractUserIds(room: { [key: string]: AttributeValue }): string[] {
-  //   const userIdsAttribute = room.userIds['L'];
-  //   if (!userIdsAttribute) {
-  //     return [];
-  //   }
-  
-  //   return userIdsAttribute.map((userId) => userId['S'] || '');
-  // }
-  
-  async findById(roomId: RoomId): Promise<Room> {
-    const command = new GetCommand({
-      TableName: this._tableName,
-      Key: {
-        id: roomId.value
-      }
-    })
+
+  // async findById(roomId: RoomId): Promise<Room> {
+  //   const command = new GetCommand({
+  //     TableName: this._tableName,
+  //     Key: {
+  //       id: roomId.value
+  //     }
+  //   })
     
-    const response = await this._docClient.send(command)
-    if (response.Item) {
-      return new Room(
-        response.Item.id,
-        response.Item.name
-      )
-    } else {
-      return new Room(
-        'undefined',
-        'undefined'
-      )
-    }
-  }
+  //   const response = await this._docClient.send(command)
+  //   if (response.Item) {
+  //     return new Room(
+  //       response.Item.id,
+  //       response.Item.name
+  //     )
+  //   } else {
+  //     return new Room(
+  //       'undefined',
+  //       'undefined'
+  //     )
+  //   }
+  // }
 
   async create(room: Room): Promise<void> {
     const command = new PutCommand({
       TableName: this._tableName,
       Item: {
         id: room.id.value,
-        name: room.name.value,
+        name: room.name,
+        isOpen: true,
+        userIds: []
+
       }
     })
     await this._docClient.send(command)
   }
 
-  async delete(roomId: RoomId): Promise<void> {
-    const command = new DeleteCommand({
-      TableName: this._tableName,
-      Key: {
-        id: roomId.value
-      }
-    })
-    await this._docClient.send(command)
-  }
+  // async delete(roomId: RoomId): Promise<void> {
+  //   const command = new DeleteCommand({
+  //     TableName: this._tableName,
+  //     Key: {
+  //       id: roomId.value
+  //     }
+  //   })
+  //   await this._docClient.send(command)
+  // }
 }
