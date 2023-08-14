@@ -1,5 +1,12 @@
 <script setup lang="ts">
-const roomName = 'ROOM1'
+interface Props {
+  roomName: Ref<string>
+}
+
+withDefaults(defineProps<Props>(), {
+  roomName: () => ref('')
+})
+
 const participants = ['参加者A', '参加者B', '参加者C', '参加者D']
 </script>
 
@@ -11,8 +18,8 @@ const participants = ['参加者A', '参加者B', '参加者C', '参加者D']
           {{ roomName }}
         </div>
         <v-list class="participants-list">
-          <div class="participants" v-for="(t, i) in participants" :key="i">
-            {{ t }}
+          <div class="participants" v-for="(participant, i) in participants" :key="i">
+            {{ participant }}
           </div>
         </v-list>
       </div>

@@ -75,17 +75,12 @@ const searchRoom = async () => {
 </script>
 
 <template>
-  <v-app>
+  <div>
     <div class="card-container">
-      <room />
-      <room />
-      <room />
+      <room v-for="(room, i) in roomList" :key="i"
+        :roomName="room.name"
+      />
     </div>
-    <v-list>
-      <v-list-item v-for="(t, i) in roomList" :key="i">
-        {{ t }}
-      </v-list-item>
-    </v-list>
     <v-text-field v-model="inputUpdateRoomId" label="更新するルームIDを入力してください" />
     <v-text-field v-model="inputUpdateRoomIsOpen" label="更新するルーム開閉フラグを入力してください" />
     <v-text-field v-model="inputUpdateRoomUserIds" label="更新するルームの入室ユーザーIDを入力してください" />
@@ -97,7 +92,7 @@ const searchRoom = async () => {
     <v-text-field v-model="inputDetailedRoomId" label="検索したいルームIDを入力してください" />
     <v-btn @click="searchRoom">searchRoom</v-btn>
     {{ roomDetail }}
-  </v-app>
+  </div>
 </template>
 
 <style scoped lang="scss">
