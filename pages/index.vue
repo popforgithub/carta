@@ -16,6 +16,7 @@ const { data: userList } = await useLazyFetch('/api/users',
     }
   }
 )
+
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -99,7 +100,8 @@ const deleteUser = async () => {
 
 <template>
   <v-app>
-    <div v-if="!session || sessionUser.id === 'undefined'">
+    <Rooms />
+    <div v-if="!session">
       <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
       <v-btn @click="createUser">createUser</v-btn>
       <v-list>
