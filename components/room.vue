@@ -1,13 +1,30 @@
 <script setup lang="ts">
-interface Props {
-  roomName: Ref<string>
-}
-
-withDefaults(defineProps<Props>(), {
-  roomName: () => ref('')
+const props = defineProps({
+  roomName: String,
+  roomIsOpen: Boolean,
+  roomPlayerIds: Array<String>
 })
-
-const participants = ['参加者A', '参加者B', '参加者C', '参加者D']
+const roomName = props.roomName
+const isOpen = props.roomIsOpen
+const playerIds = props.roomPlayerIds
+const getUserNamesByUserId = async (userIds) => {
+  // if (!Array.isArray(userIds.value) || userIds.value.length === 0) {
+  //   return []
+  // }
+  const userNames = await Promise.all(userIds.value.map(async (userId) => {
+    const { data: userResponse } = await useFetch('/api/users/:id', { 
+      method: 'get',
+      params: { id: userId},
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const { name } = userResponse.value
+    return name
+  }))
+  return userNames
+}
+const playerNames = await getUserNamesByUserId(playerIds)
 </script>
 
 <template>
@@ -17,9 +34,9 @@ const participants = ['参加者A', '参加者B', '参加者C', '参加者D']
         <div class="room-name text-h6 mb-1">
           {{ roomName }}
         </div>
-        <v-list class="participants-list">
-          <div class="participants" v-for="(participant, i) in participants" :key="i">
-            {{ participant }}
+        <v-list class="players-list">
+          <div class="players" v-for="(playerName, i) in playerNames" :key="i">
+            {{ playerName }}
           </div>
         </v-list>
       </div>
@@ -48,12 +65,12 @@ const participants = ['参加者A', '参加者B', '参加者C', '参加者D']
     width: 80%;
   }
 }
-  .participants-list {
+  .players-list {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap
   }
-  .participants {
+  .players {
     color: red;
     padding: 0 2%;
   }

@@ -78,8 +78,13 @@ const searchRoom = async () => {
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"
-        :roomName="room.name"
+        :roomName ="ref(room.name)"
+        :roomIsOpen = "ref(room.isOpen)"
+        :roomPlayerIds = "ref(room.playerIds)"
       />
+    </div>
+    <div  v-for="(room, i) in roomList" :key="i">
+      {{ room }}
     </div>
     <v-text-field v-model="inputUpdateRoomId" label="更新するルームIDを入力してください" />
     <v-text-field v-model="inputUpdateRoomIsOpen" label="更新するルーム開閉フラグを入力してください" />
