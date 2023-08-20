@@ -5,27 +5,32 @@ const props = defineProps<{
   roomName: string
   roomIsOpen: boolean
   roomPlayerIds: Array<string>
+  roomAudienceIds: Array<string>
 }>()
 const sessionId = ref(props.sessionId)
 const roomId = ref(props.roomId)
 const roomName = ref(props.roomName)
 const roomIsOpen = ref(props.roomIsOpen)
 const roomPlayerIds = ref(props.roomPlayerIds)
+const roomAudienceIds = ref(props.roomAudienceIds)
 type Room = {
   id: string,
   name: string,
   isOpen: boolean,
   playerIds: Array<string>
+  audienceIds: Array<string>
 }
 const room: Room = {
   id: roomId.value,
   name: roomName.value,
   isOpen: roomIsOpen.value,
-  playerIds: roomPlayerIds.value
+  playerIds: roomPlayerIds.value,
+  audienceIds: roomAudienceIds.value
 }
 
 const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room): void
+  (e: 'joinAsAudience', v: Room): void
 }>()
 
 const getUserNamesByUserId = async (userIds: Array<string>): Promise<Array<string>> => {
@@ -44,14 +49,20 @@ const getUserNamesByUserId = async (userIds: Array<string>): Promise<Array<strin
 }
 
 const playerNames: Ref<Array<string>> = ref([])
-const refreshPlayerNames = async () => {
+const audienceNames: Ref<Array<string>> = ref([])
+const refreshUserNames = async () => {
   playerNames.value = await getUserNamesByUserId(roomPlayerIds.value)
+  audienceNames.value = await getUserNamesByUserId(roomAudienceIds.value)
 }
-refreshPlayerNames()
+refreshUserNames()
 
 const joinAsPlayer = async () => {
   emits('joinAsPlayer', room)
-  refreshPlayerNames()
+  refreshUserNames()
+}
+const joinAsAudience = async () => {
+  emits('joinAsAudience', room)
+  refreshUserNames()
 }
 </script>
 
@@ -71,9 +82,9 @@ const joinAsPlayer = async () => {
           </div>
         </v-list>
         <h6>観戦者</h6>
-        <v-list class="players-list">
-          <div class="players" v-for="(playerName, i) in playerNames" :key="i">
-            {{ playerName }}
+        <v-list class="audiences-list">
+          <div class="audiences" v-for="(audienceName, i) in audienceNames" :key="i">
+            {{ audienceName }}
           </div>
         </v-list>
       </div>
@@ -83,7 +94,7 @@ const joinAsPlayer = async () => {
       <v-btn variant="outlined" class="border" @click="joinAsPlayer">
         参加
       </v-btn>
-      <v-btn variant="outlined" class="border">
+      <v-btn variant="outlined" class="border" @click="joinAsAudience">
         観戦
       </v-btn>
       <v-btn variant="outlined" class="border">
@@ -102,12 +113,12 @@ const joinAsPlayer = async () => {
     width: 80%;
   }
 }
-  .players-list {
+  .players-list,.audiences-list{
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap
   }
-  .players {
+  .players,.audiences {
     color: limegreen;
     padding: 0 2%;
   }

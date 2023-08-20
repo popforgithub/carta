@@ -5,6 +5,7 @@ type RoomsResponse = {
   name: string
   isOpen: boolean
   playerIds: Array<string>
+  audienceIds: Array<string>
 }[]
 
 export default defineEventHandler(async () => {
@@ -12,11 +13,13 @@ export default defineEventHandler(async () => {
   const roomList = await repository.getAll()
   const roomsResponse: RoomsResponse = roomList.map((room) => {
     const playerIds = Array.isArray(room.playerIds) ? room.playerIds.map(playerId => playerId.value) : []
+    const audienceIds = Array.isArray(room.audienceIds) ? room.audienceIds.map(audienceId => audienceId.value) : []
     return {
       id: room.id.value,
       name: room.name,
       isOpen: room.isOpen,
-      playerIds: playerIds
+      playerIds: playerIds,
+      audienceIds: audienceIds
     }
   })
   

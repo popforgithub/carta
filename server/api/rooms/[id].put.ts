@@ -9,6 +9,7 @@ type PutRequestBody = {
   name: string
   isOpen: boolean
   playerIds: Array<UserId>
+  audienceIds: Array<UserId>
 }
 
 export default defineEventHandler(async (event) => {
@@ -17,7 +18,8 @@ export default defineEventHandler(async (event) => {
   const paramsId: string = JSON.parse(JSON.stringify(params.id))
   const paramsIsOpen: boolean = JSON.parse(JSON.stringify(params.isOpen))
   // playerIdが一つだけわたってくるとき何故か配列じゃなくstringになっているので修正が必要
-  const paramsUserId: Array<string> = JSON.parse(JSON.stringify(params.playerIds))
+  const paramsPlayerId: Array<string> = JSON.parse(JSON.stringify(params.playerIds))
+  const paramsAudienceId: Array<string> = JSON.parse(JSON.stringify(params.audienceIds))
   const roomId = new RoomId(paramsId)
   const repository = new roomDynamoDBRepository()
   const room = await repository.findById(roomId)
@@ -25,7 +27,8 @@ export default defineEventHandler(async (event) => {
     id: room.id,
     name: room.name,
     isOpen: paramsIsOpen,
-    playerIds: paramsUserId.map(paramsUserId => new UserId(paramsUserId))
+    playerIds: paramsPlayerId.map(paramsPlayerId => new UserId(paramsPlayerId)),
+    audienceIds: paramsAudienceId.map(paramsAudienceId => new UserId(paramsAudienceId))
   }
   console.log('asdfasdfasf', putRequestBody)
   await repository.update(putRequestBody)

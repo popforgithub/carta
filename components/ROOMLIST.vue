@@ -39,7 +39,8 @@ const updateRoom = async (room) => {
       params: {
         id: room.id,
         isOpen: room.isOpen,
-        playerIds: room.playerIds
+        playerIds: room.playerIds,
+        audienceIds: room.audienceIds
       },
       headers: {
         'Content-Type': 'application/json'
@@ -51,6 +52,11 @@ const updateRoom = async (room) => {
 
 const joinAsPlayer = async (room) => {
   room.playerIds.push(sessionId.value)
+  await updateRoom(room)
+}
+
+const joinAsAudience = async (room) => {
+  room.audienceIds.push(sessionId.value)
   await updateRoom(room)
 }
 
@@ -91,8 +97,10 @@ const searchRoom = async () => {
         :roomName ="room.name"
         :roomIsOpen = "room.isOpen"
         :roomPlayerIds = "room.playerIds"
+        :roomAudienceIds = "room.audienceIds"
         :sessionId = "sessionId"
         @joinAsPlayer="joinAsPlayer"
+        @joinAsAudience="joinAsAudience"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">
