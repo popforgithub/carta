@@ -1,33 +1,20 @@
 <script setup lang="ts">
+const props = defineProps<{
+  sessionId: Ref<string>,
+}>()
+const sessionId = props.sessionId
 const { data: roomList, refresh } = await useLazyFetch('/api/rooms',
   { 
     method: 'get',
     headers: {
       'Content-Type': 'application/json'
-    }
-  }
+    },
+  },
 )
-const playerIds = []
+
 const inputUpdateRoomId: Ref<string> = ref('')
 const inputUpdateRoomIsOpen = ref()
 const inputUpdateRoomUserIds = ref()
-const updateRoom = async () => {
-  playerIds.push(inputUpdateRoomUserIds.value)
-  await useFetch('/api/rooms/:id',
-    { 
-      method: 'put',
-      params: {
-        id: inputUpdateRoomId,
-        isOpen: inputUpdateRoomIsOpen,
-        playerIds: playerIds
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  refresh()
-}
 
 const inputRoomName: Ref<string> = ref('')
 const createRoom = async () => {
@@ -43,6 +30,28 @@ const createRoom = async () => {
     }
   )
   refresh()
+}
+
+const updateRoom = async (room) => {
+  await useFetch('/api/rooms/:id',
+    { 
+      method: 'put',
+      params: {
+        id: room.id,
+        isOpen: room.isOpen,
+        playerIds: room.playerIds
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  refresh()
+}
+
+const joinAsPlayer = async (room) => {
+  room.playerIds.push(sessionId.value)
+  await updateRoom(room)
 }
 
 const inputRoomId: Ref<string> = ref('')
@@ -78,9 +87,12 @@ const searchRoom = async () => {
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"
-        :roomName ="ref(room.name)"
-        :roomIsOpen = "ref(room.isOpen)"
-        :roomPlayerIds = "ref(room.playerIds)"
+        :roomId="room.id"
+        :roomName ="room.name"
+        :roomIsOpen = "room.isOpen"
+        :roomPlayerIds = "room.playerIds"
+        :sessionId = "sessionId"
+        @joinAsPlayer="joinAsPlayer"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">

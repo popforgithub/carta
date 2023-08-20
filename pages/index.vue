@@ -100,7 +100,6 @@ const deleteUser = async () => {
 
 <template>
   <v-app>
-    <ROOMLIST />
     <div v-if="!session">
       <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
       <v-btn @click="createUser">createUser</v-btn>
@@ -112,6 +111,7 @@ const deleteUser = async () => {
       <NuxtLink to="/user">Chat</NuxtLink>
     </div>
     <div v-else>
+      <ROOMLIST :sessionId="ref(sessionUser.id)" />
       こんにちは {{ sessionUser.name }} さん
       <v-list>
         <v-list-item v-for="(t, i) in userList" :key="i">
