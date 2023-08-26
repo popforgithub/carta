@@ -4,6 +4,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 import { ulid } from 'ulidx';
 
 const session = useCookie('session')
+const message = ref({})
 
 const inputUserName: Ref<string> = ref('')
 let sessionUser: Ref<{id: string, name: string}> = ref()
@@ -25,13 +26,15 @@ ws.onopen = async (event) => {
   console.log(event.type, event)
 }
 
-const sendMessage = () => {
+const sendRoomInfo = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: message.value }))
+  ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: room}))
 }
 
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
+  console.log('this should be faster')
+  message.value = JSON.parse(event.data).echo
   // const senderId = JSON.parse(event.data).id 
   // const user = JSON.parse(event.data).echo
   // users.value.unshift(user)
@@ -111,7 +114,11 @@ const deleteUser = async () => {
       <NuxtLink to="/user">Chat</NuxtLink>
     </div>
     <div v-else>
-      <ROOMLIST :sessionId="ref(sessionUser.id)" />
+      <ROOMLIST
+        :sessionId="ref(sessionUser.id)"
+        :message="ref(message)"
+        @sendRoomInfo="sendRoomInfo"
+      />
       こんにちは {{ sessionUser.name }} さん
       <v-list>
         <v-list-item v-for="(t, i) in userList" :key="i">

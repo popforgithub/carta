@@ -10,24 +10,30 @@ type Room = {
 
 const props = defineProps<{
   sessionId: Ref<string>,
+  message: Ref<object>
 }>()
 const sessionId = props.sessionId
+
+const emits = defineEmits<{
+  (e: 'sendRoomInfo', v: Room): void
+}>()
+
 const { data: roomList, refresh } = await useLazyFetch('/api/rooms',
-  { 
-    method: 'get',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+{ 
+  method: 'get',
+  headers: {
+    'Content-Type': 'application/json'
   },
+},
 )
 
 const inputUpdateRoomId: Ref<string> = ref('')
-const inputUpdateRoomIsOpen = ref()
-const inputUpdateRoomUserIds = ref()
+  const inputUpdateRoomIsOpen = ref()
+  const inputUpdateRoomUserIds = ref()
 
 const inputRoomName: Ref<string> = ref('')
-const createRoom = async () => {
-  await useFetch('/api/rooms',
+  const createRoom = async () => {
+    await useFetch('/api/rooms',
     { 
       method: 'post',
       body: { 
@@ -37,12 +43,12 @@ const createRoom = async () => {
         'Content-Type': 'application/json'
       }
     }
-  )
-  refresh()
-}
-
-const updateRoom = async (room) => {
-  await useFetch('/api/rooms/:id',
+    )
+    refresh()
+  }
+  
+  const updateRoom = async (room) => {
+    await useFetch('/api/rooms/:id',
     { 
       method: 'put',
       params: {
@@ -55,29 +61,32 @@ const updateRoom = async (room) => {
         'Content-Type': 'application/json'
       }
     }
-  )
+    )
   refresh()
 }
 
 const joinAsPlayer = async (room) => {
   room.playerIds.push(sessionId.value)
   await updateRoom(room)
+  emits('sendRoomInfo', room)
 }
 
 const joinAsAudience = async (room) => {
   room.audienceIds.push(sessionId.value)
   await updateRoom(room)
+  emits('sendRoomInfo', room)
 }
 
 const leaveRoom = async (room: Room) => {
   room.playerIds = room.playerIds.filter((id: string) => id !== sessionId.value)
   room.audienceIds = room.audienceIds.filter(id => id !== sessionId.value)
   await updateRoom(room)
+  emits('sendRoomInfo', room)
 }
 
 const inputRoomId: Ref<string> = ref('')
-const deleteRoom = async () => {
-  await useFetch('/api/rooms/:id',
+  const deleteRoom = async () => {
+    await useFetch('/api/rooms/:id',
     { 
       method: 'delete',
       params: { id: inputRoomId },
@@ -85,38 +94,43 @@ const deleteRoom = async () => {
         'Content-Type': 'application/json'
       }
     }
-  )
-  refresh()
-}
-
-let roomDetail = ref()
-const inputDetailedRoomId: Ref<string> = ref('')
-const searchRoom = async () => {
-  roomDetail.value = await useFetch('/api/rooms/:id',
-    { 
-      method: 'get',
-      params: { id: inputDetailedRoomId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    )
+    refresh()
+  }
+  
+  let roomDetail = ref()
+  const inputDetailedRoomId: Ref<string> = ref('')
+    const searchRoom = async () => {
+      roomDetail.value = await useFetch('/api/rooms/:id',
+      { 
+        method: 'get',
+        params: { id: inputDetailedRoomId },
+        headers: {
+          'Content-Type': 'application/json'
+        }
     }
   )
 }
+
+watch(() => props.message, () => {
+  refresh()
+})
 </script>
 
 <template>
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"
-        :roomId="room.id"
-        :roomName ="room.name"
-        :roomIsOpen = "room.isOpen"
-        :roomPlayerIds = "room.playerIds"
-        :roomAudienceIds = "room.audienceIds"
-        :sessionId = "sessionId"
-        @joinAsPlayer="joinAsPlayer"
-        @joinAsAudience="joinAsAudience"
-        @leaveRoom="leaveRoom"
+      :room="room"
+      :roomId="room.id"
+      :roomName ="room.name"
+      :roomIsOpen = "room.isOpen"
+      :roomPlayerIds = "room.playerIds"
+      :roomAudienceIds = "room.audienceIds"
+      :sessionId = "sessionId"
+      @joinAsPlayer="joinAsPlayer"
+      @joinAsAudience="joinAsAudience"
+      @leaveRoom="leaveRoom"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">

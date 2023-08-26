@@ -1,18 +1,4 @@
 <script setup lang="ts">
-const props = defineProps<{
-  sessionId: string
-  roomId: string
-  roomName: string
-  roomIsOpen: boolean
-  roomPlayerIds: Array<string>
-  roomAudienceIds: Array<string>
-}>()
-const sessionId = ref(props.sessionId)
-const roomId = ref(props.roomId)
-const roomName = ref(props.roomName)
-const roomIsOpen = ref(props.roomIsOpen)
-const roomPlayerIds = ref(props.roomPlayerIds)
-const roomAudienceIds = ref(props.roomAudienceIds)
 type Room = {
   id: string,
   name: string,
@@ -20,13 +6,12 @@ type Room = {
   playerIds: Array<string>
   audienceIds: Array<string>
 }
-const room: Room = {
-  id: roomId.value,
-  name: roomName.value,
-  isOpen: roomIsOpen.value,
-  playerIds: roomPlayerIds.value,
-  audienceIds: roomAudienceIds.value
-}
+
+const props = defineProps<{
+  sessionId: string
+  room: Room
+}>()
+const sessionId = ref(props.sessionId)
 
 const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room): void
@@ -50,50 +35,46 @@ const getUserNamesByUserId = async (userIds: Array<string>): Promise<Array<strin
   }))
   return userNames
 }
-
 const playerNames: Ref<Array<string>> = ref([])
 const audienceNames: Ref<Array<string>> = ref([])
 const refreshUserNames = async () => {
-  playerNames.value = await getUserNamesByUserId(roomPlayerIds.value)
-  audienceNames.value = await getUserNamesByUserId(roomAudienceIds.value)
+  playerNames.value = await getUserNamesByUserId(props.room.playerIds)
+  audienceNames.value = await getUserNamesByUserId(props.room.audienceIds)
 }
 refreshUserNames()
 
 const isJoined: Ref<boolean> = ref()
-if (room.playerIds.filter((id: string) => id !== sessionId.value).length === 0 && room.audienceIds.filter(id => id !== sessionId.value).length === 0) {
+if (props.room.playerIds.filter((id: string) => id !== sessionId.value).length === 0 && props.room.audienceIds.filter(id => id !== sessionId.value).length === 0) {
   isJoined.value = false
 } else {
   isJoined.value = true
 }
 const joinAsPlayer = async () => {
-  emits('joinAsPlayer', room)
-  roomPlayerIds.value = room.playerIds
-  refreshUserNames()
+  emits('joinAsPlayer', props.room)
   isJoined.value = true
 }
 const joinAsAudience = async () => {
-  emits('joinAsAudience', room)
-  roomAudienceIds.value = room.audienceIds
-  refreshUserNames()
+  emits('joinAsAudience', props.room)
   isJoined.value = true
 }
 const leaveRoom = async () => {
-  emits('leaveRoom', room)
-  roomPlayerIds.value = room.playerIds
-  roomAudienceIds.value = room.audienceIds
-  refreshUserNames()
+  emits('leaveRoom', props.room)
   isJoined.value = false
 }
+
+watch(() => props.room, () => {
+  refreshUserNames()
+})
 </script>
 
 <template>
-  <v-card class="mx-auto" variant="outlined" :disabled="!roomIsOpen">
+  <v-card class="mx-auto" variant="outlined" :disabled="!props.room.isOpen">
     <v-card-item>
       <div class="text-center">
         <div class="room-name text-h6 mb-1">
-          {{ roomName }}
-          <h6 v-if="roomIsOpen" style="color: limegreen;">エントリー募集中</h6>
-          <h6 v-if="!roomIsOpen" style="color: red;">エントリー受付終了</h6>
+          {{ props.room.name }}
+          <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー募集中</h6>
+          <h6 v-if="!props.room.isOpen" style="color: red;">エントリー受付終了</h6>
         </div>
         <h6>参加者</h6>
         <v-list class="players-list">
