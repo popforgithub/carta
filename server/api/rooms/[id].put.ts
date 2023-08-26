@@ -18,8 +18,10 @@ export default defineEventHandler(async (event) => {
   const paramsId: string = JSON.parse(JSON.stringify(params.id))
   const paramsIsOpen: boolean = JSON.parse(JSON.stringify(params.isOpen))
   // playerIdが一つだけわたってくるとき何故か配列じゃなくstringになっているので修正が必要
-  const paramsPlayerId: Array<string> = JSON.parse(JSON.stringify(params.playerIds))
-  const paramsAudienceId: Array<string> = JSON.parse(JSON.stringify(params.audienceIds))
+  const rawParamsPlayerIds: Array<string> = Array.isArray(params.playerIds) ? params.playerIds : [params.playerIds]
+  const rawParamsAudienceIds: Array<string> = Array.isArray(params.audienceIds) ? params.audienceIds : [params.audienceIds]
+  const paramsPlayerIds: Array<string> = JSON.parse(JSON.stringify(rawParamsPlayerIds))
+  const paramsAudienceIds: Array<string> = JSON.parse(JSON.stringify(rawParamsAudienceIds))
   const roomId = new RoomId(paramsId)
   const repository = new roomDynamoDBRepository()
   const room = await repository.findById(roomId)
@@ -27,10 +29,9 @@ export default defineEventHandler(async (event) => {
     id: room.id,
     name: room.name,
     isOpen: paramsIsOpen,
-    playerIds: paramsPlayerId.map(paramsPlayerId => new UserId(paramsPlayerId)),
-    audienceIds: paramsAudienceId.map(paramsAudienceId => new UserId(paramsAudienceId))
+    playerIds: paramsPlayerIds ? paramsPlayerIds.map(paramsPlayerId => new UserId(paramsPlayerId)) : [],
+    audienceIds: paramsAudienceIds ? paramsAudienceIds.map(paramsAudienceId => new UserId(paramsAudienceId)) : []
   }
-  console.log('asdfasdfasf', putRequestBody)
   await repository.update(putRequestBody)
 
   event.node.res.statusCode = 204

@@ -8,7 +8,6 @@ type PostRequestBody = {
 export default defineEventHandler(async (event) => {
   const { name }: PostRequestBody = (await readBody(event))
   const room = new Room('', name)
-  console.log('ROOM', room)
   const repository = new roomDynamoDBRepository()
   await repository.create(room)
 

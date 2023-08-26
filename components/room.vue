@@ -31,19 +31,22 @@ const room: Room = {
 const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room): void
   (e: 'joinAsAudience', v: Room): void
+  (e: 'leaveRoom', v: Room): void
 }>()
 
 const getUserNamesByUserId = async (userIds: Array<string>): Promise<Array<string>> => {
   const userNames: Array<string> = await Promise.all(userIds.map(async (userId) => {
-    const { data: userResponse } = await useFetch('/api/users/:id', { 
-      method: 'get',
-      params: { id: userId},
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const { name } = userResponse.value
-    return name
+    if (userId) {
+      const { data: userResponse } = await useFetch('/api/users/:id', { 
+        method: 'get',
+        params: { id: userId },
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const { name } = userResponse.value
+      if (name) { return name }
+    }
   }))
   return userNames
 }
@@ -56,13 +59,30 @@ const refreshUserNames = async () => {
 }
 refreshUserNames()
 
+const isJoined: Ref<boolean> = ref()
+if (room.playerIds.filter((id: string) => id !== sessionId.value).length === 0 && room.audienceIds.filter(id => id !== sessionId.value).length === 0) {
+  isJoined.value = false
+} else {
+  isJoined.value = true
+}
 const joinAsPlayer = async () => {
   emits('joinAsPlayer', room)
+  roomPlayerIds.value = room.playerIds
   refreshUserNames()
+  isJoined.value = true
 }
 const joinAsAudience = async () => {
   emits('joinAsAudience', room)
+  roomAudienceIds.value = room.audienceIds
   refreshUserNames()
+  isJoined.value = true
+}
+const leaveRoom = async () => {
+  emits('leaveRoom', room)
+  roomPlayerIds.value = room.playerIds
+  roomAudienceIds.value = room.audienceIds
+  refreshUserNames()
+  isJoined.value = false
 }
 </script>
 
@@ -91,11 +111,14 @@ const joinAsAudience = async () => {
     </v-card-item>
 
     <v-card-actions class="border" style="display: flex; justify-content: space-around;">
-      <v-btn variant="outlined" class="border" @click="joinAsPlayer">
+      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsPlayer">
         参加
       </v-btn>
-      <v-btn variant="outlined" class="border" @click="joinAsAudience">
+      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsAudience">
         観戦
+      </v-btn>
+      <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
+        退室
       </v-btn>
       <v-btn variant="outlined" class="border">
         試合開始

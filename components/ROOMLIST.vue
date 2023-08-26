@@ -1,4 +1,13 @@
 <script setup lang="ts">
+
+type Room = {
+  id: string,
+  name: string,
+  isOpen: boolean,
+  playerIds: Array<string>
+  audienceIds: Array<string>
+}
+
 const props = defineProps<{
   sessionId: Ref<string>,
 }>()
@@ -60,6 +69,12 @@ const joinAsAudience = async (room) => {
   await updateRoom(room)
 }
 
+const leaveRoom = async (room: Room) => {
+  room.playerIds = room.playerIds.filter((id: string) => id !== sessionId.value)
+  room.audienceIds = room.audienceIds.filter(id => id !== sessionId.value)
+  await updateRoom(room)
+}
+
 const inputRoomId: Ref<string> = ref('')
 const deleteRoom = async () => {
   await useFetch('/api/rooms/:id',
@@ -101,6 +116,7 @@ const searchRoom = async () => {
         :sessionId = "sessionId"
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
+        @leaveRoom="leaveRoom"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">
