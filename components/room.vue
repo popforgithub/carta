@@ -44,10 +44,10 @@ const refreshUserNames = async () => {
 refreshUserNames()
 
 const isJoined: Ref<boolean> = ref()
-if (props.room.playerIds.filter((id: string) => id !== sessionId.value).length === 0 && props.room.audienceIds.filter(id => id !== sessionId.value).length === 0) {
-  isJoined.value = false
-} else {
+if (props.room.playerIds.find((id: string) => id === sessionId.value) || props.room.audienceIds.find(id => id === sessionId.value)) {
   isJoined.value = true
+} else {
+  isJoined.value = false
 }
 const joinAsPlayer = async () => {
   emits('joinAsPlayer', props.room)
