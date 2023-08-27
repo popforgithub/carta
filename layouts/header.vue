@@ -1,24 +1,26 @@
 <script setup lang="ts">
+
+const sessionUserName = ref('')
+const wsConnections = ref('')
+
 const menuItems = [
     {
       name: 'PLAY',
-      url: '#'
+      page: './'
     },
     {
       name: 'ROOM',
-      url: '#'
+      page: '/Chat'
     },
     {
       name: 'CARTA',
-      url: '#'
+      page: './'
     },
     {
       name: 'DB',
-      url: '#'
+      page: './'
     }
   ]
-const wsConnections = 15
-const userName = 'こんにちは'
   
 const drawer: Ref<boolean> = ref(false)
 const openDrawer = () => {
@@ -32,19 +34,19 @@ const openDrawer = () => {
       <v-app-bar app dark>
         <v-app-bar-nav-icon id="nav-icon" @click="openDrawer()"></v-app-bar-nav-icon>
         <v-app-bar-title id="title">CARTA ONLINE</v-app-bar-title>
-        <v-tabs id="v-tabs-for-pc">
-          <v-tab v-for="(menuItem, index) in menuItems" :key="index">
+        <v-tabs id="v-tabs-for-pc" v-for="(menuItem, index) in menuItems" :key="index">
+          <v-tab :to="menuItem.page">
             {{ menuItem.name }}
           </v-tab>
         </v-tabs>
         <v-spacer></v-spacer>
         <v-layout id="ws-connections">
           <v-icon>mdi-monitor-cellphone</v-icon>
-          <p>{{ wsConnections }}</p>
+          <p >{{ wsConnections }}</p>
         </v-layout>
         <v-layout id="user-info" wrap>
           <v-icon>mdi-account</v-icon>
-          <p> {{ userName }} さん</p>
+          <p> {{ sessionUserName }} さん</p>
         </v-layout>
       </v-app-bar>
       <v-navigation-drawer id="v-navigation-drawer-for-mobile" v-model="drawer" fixed temporary>

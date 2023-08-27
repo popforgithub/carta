@@ -33,22 +33,7 @@ const sendRoomInfo = (room) => {
 
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
-  console.log('this should be faster')
   message.value = JSON.parse(event.data).echo
-  // const senderId = JSON.parse(event.data).id 
-  // const user = JSON.parse(event.data).echo
-  // users.value.unshift(user)
-//   await useFetch('/api/users',
-//     { 
-//       method: 'post',
-//       body: { 
-//         content: message.value
-//       },
-//       headers: {
-//         'Content-Type': 'application/json'
-//       }
-//     }
-//   )
 }
 
 const closeConnection = () => {

@@ -121,16 +121,16 @@ watch(() => props.message, () => {
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"
-      :room="room"
-      :roomId="room.id"
-      :roomName ="room.name"
-      :roomIsOpen = "room.isOpen"
-      :roomPlayerIds = "room.playerIds"
-      :roomAudienceIds = "room.audienceIds"
-      :sessionId = "sessionId"
-      @joinAsPlayer="joinAsPlayer"
-      @joinAsAudience="joinAsAudience"
-      @leaveRoom="leaveRoom"
+        :room="room"
+        :roomId="room.id"
+        :roomName ="room.name"
+        :roomIsOpen = "room.isOpen"
+        :roomPlayerIds = "room.playerIds"
+        :roomAudienceIds = "room.audienceIds"
+        :sessionId = "sessionId"
+        @joinAsPlayer="joinAsPlayer"
+        @joinAsAudience="joinAsAudience"
+        @leaveRoom="leaveRoom"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">
