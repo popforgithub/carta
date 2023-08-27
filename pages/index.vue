@@ -7,6 +7,8 @@ const session = useCookie('session')
 const message = ref({})
 const wsConnections = ref(0)
 
+const pageName = ref('PLAY')
+
 const inputUserName: Ref<string> = ref('')
 let sessionUser: Ref<{id: string, name: string}> = ref()
 const inputUserId: string = ''
@@ -86,6 +88,10 @@ const deleteUser = async () => {
     }
   )
 }
+
+const pageSelect = async (pagename) => {
+  pageName.value = pagename
+}
 </script>
 
 <template>
@@ -104,12 +110,19 @@ const deleteUser = async () => {
       <HEADER
         :sessionUserName="ref(sessionUser.name)"
         :wsConnections="ref(wsConnections)"
+        @pageSelect="pageSelect"
       />
-      <ROOMLIST
-        :sessionId="ref(sessionUser.id)"
-        :message="ref(message)"
-        @sendRoomInfo="sendRoomInfo"
-      />
+      <div v-if="pageName==='PLAY'">
+        <ROOMLIST
+          :sessionId="ref(sessionUser.id)"
+          :message="ref(message)"
+          @sendRoomInfo="sendRoomInfo"
+        />
+      </div>
+      <div v-else-if="pageName==='ROOM'">
+        <EDITROOM
+        />
+      </div>
       こんにちは {{ sessionUser.name }} さん
       <v-list>
         <v-list-item v-for="(t, i) in userList" :key="i">

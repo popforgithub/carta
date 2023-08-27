@@ -6,32 +6,22 @@ const props = defineProps<{
 const sessionUserName = ref(props.sessionUserName)
 const wsConnections = ref(props.wsConnections)
 
+const emits = defineEmits<{
+  (e: 'pageSelect', v: string): void
+}>()
+
 watch(() => props.wsConnections, () => {
   wsConnections.value = ref(props.wsConnections).value
 })
 
-const menuItems = [
-    {
-      name: 'PLAY',
-      page: './'
-    },
-    {
-      name: 'ROOM',
-      page: '/Chat'
-    },
-    {
-      name: 'CARTA',
-      page: './'
-    },
-    {
-      name: 'DB',
-      page: './'
-    }
-  ]
-  
+const menuItems = ['PLAY', 'ROOM', 'CARTA', 'DB']
 const drawer: Ref<boolean> = ref(false)
 const openDrawer = () => {
   drawer.value = true
+}
+
+const pageSelect = (menuItem: string) => {
+  emits('pageSelect', menuItem)
 }
 </script>
 
@@ -42,8 +32,8 @@ const openDrawer = () => {
         <v-app-bar-nav-icon id="nav-icon" @click="openDrawer()"></v-app-bar-nav-icon>
         <v-app-bar-title id="title">CARTA ONLINE</v-app-bar-title>
         <v-tabs id="v-tabs-for-pc" v-for="(menuItem, index) in menuItems" :key="index">
-          <v-tab :to="menuItem.page">
-            {{ menuItem.name }}
+          <v-tab @click="pageSelect(menuItem)">
+            {{ menuItem }}
           </v-tab>
         </v-tabs>
         <v-spacer></v-spacer>
@@ -60,7 +50,7 @@ const openDrawer = () => {
         <v-list nav dense>
           <v-list-item-group>
             <v-list-item v-for="(menuItem, index) in menuItems" :key="index">
-              <v-list-item-title>{{ menuItem.name }}</v-list-item-title>
+              <v-list-item-title>{{ menuItem }}</v-list-item-title>
             </v-list-item>
           </v-list-item-group>
         </v-list>

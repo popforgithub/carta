@@ -10,13 +10,14 @@ type Room = {
 const props = defineProps<{
   sessionId: string
   room: Room
+  joinFlag: boolean
 }>()
 const sessionId = ref(props.sessionId)
-
+const joinFlag = ref(props.joinFlag)
 const emits = defineEmits<{
-  (e: 'joinAsPlayer', v: Room): void
-  (e: 'joinAsAudience', v: Room): void
-  (e: 'leaveRoom', v: Room): void
+  (e: 'joinAsPlayer', v: Room, b: boolean): void
+  (e: 'joinAsAudience', v: Room, b: boolean): void
+  (e: 'leaveRoom', v: Room, b: boolean): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
 
@@ -41,6 +42,7 @@ const audienceNames: Ref<Array<string>> = ref([])
 const refreshUserNames = async () => {
   playerNames.value = await getUserNamesByUserId(props.room.playerIds)
   audienceNames.value = await getUserNamesByUserId(props.room.audienceIds)
+  joinFlag.value = props.joinFlag
 }
 refreshUserNames()
 
@@ -51,16 +53,16 @@ if (props.room.playerIds.find((id: string) => id === sessionId.value) || props.r
   isJoined.value = false
 }
 const joinAsPlayer = async () => {
-  emits('joinAsPlayer', props.room)
   isJoined.value = true
+  emits('joinAsPlayer', props.room, isJoined.value)
 }
 const joinAsAudience = async () => {
-  emits('joinAsAudience', props.room)
   isJoined.value = true
+  emits('joinAsAudience', props.room, isJoined.value)
 }
 const leaveRoom = async () => {
-  emits('leaveRoom', props.room)
   isJoined.value = false
+  emits('leaveRoom', props.room, isJoined.value)
 }
 
 watch(() => props.room, () => {
@@ -96,16 +98,16 @@ emits('wsConnectionsRefresh', props.room)
     </v-card-item>
 
     <v-card-actions class="border" style="display: flex; justify-content: space-around;">
-      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsPlayer">
+      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsPlayer" :disabled="joinFlag">
         参加
       </v-btn>
-      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsAudience">
+      <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsAudience" :disabled="joinFlag">
         観戦
       </v-btn>
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn variant="outlined" class="border">
+      <v-btn variant="outlined" class="border" :disabled="!isJoined && joinFlag">
         試合開始
       </v-btn>
     </v-card-actions>
