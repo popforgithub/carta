@@ -1,7 +1,14 @@
 <script setup lang="ts">
+const props = defineProps<{
+  sessionUserName: Ref<string>
+  wsConnections: Ref<number>
+}>()
+const sessionUserName = ref(props.sessionUserName)
+const wsConnections = ref(props.wsConnections)
 
-const sessionUserName = ref('')
-const wsConnections = ref('')
+watch(() => props.wsConnections, () => {
+  wsConnections.value = ref(props.wsConnections).value
+})
 
 const menuItems = [
     {
@@ -29,7 +36,7 @@ const openDrawer = () => {
 </script>
 
 <template>
-  <v-app>
+  <div>
     <header>
       <v-app-bar app dark>
         <v-app-bar-nav-icon id="nav-icon" @click="openDrawer()"></v-app-bar-nav-icon>
@@ -60,8 +67,7 @@ const openDrawer = () => {
       </v-navigation-drawer>
     </header>
     <div id="overlap-prevention"></div>
-    <slot />
-  </v-app>
+  </div>
 </template>
 
 <style lang="scss" scoped>

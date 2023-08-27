@@ -17,6 +17,7 @@ const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room): void
   (e: 'joinAsAudience', v: Room): void
   (e: 'leaveRoom', v: Room): void
+  (e: 'wsConnectionsRefresh', v: Room): void
 }>()
 
 const getUserNamesByUserId = async (userIds: Array<string>): Promise<Array<string>> => {
@@ -65,6 +66,9 @@ const leaveRoom = async () => {
 watch(() => props.room, () => {
   refreshUserNames()
 })
+
+// components読み込み時にws接続数を更新
+emits('wsConnectionsRefresh', props.room)
 </script>
 
 <template>

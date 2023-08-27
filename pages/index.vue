@@ -5,6 +5,7 @@ import { ulid } from 'ulidx';
 
 const session = useCookie('session')
 const message = ref({})
+const wsConnections = ref(0)
 
 const inputUserName: Ref<string> = ref('')
 let sessionUser: Ref<{id: string, name: string}> = ref()
@@ -34,6 +35,7 @@ const sendRoomInfo = (room) => {
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
   message.value = JSON.parse(event.data).echo
+  wsConnections.value = JSON.parse(event.data).wsConnections
 }
 
 const closeConnection = () => {
@@ -99,6 +101,10 @@ const deleteUser = async () => {
       <NuxtLink to="/user">Chat</NuxtLink>
     </div>
     <div v-else>
+      <HEADER
+        :sessionUserName="ref(sessionUser.name)"
+        :wsConnections="ref(wsConnections)"
+      />
       <ROOMLIST
         :sessionId="ref(sessionUser.id)"
         :message="ref(message)"

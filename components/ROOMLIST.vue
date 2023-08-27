@@ -84,6 +84,10 @@ const leaveRoom = async (room: Room) => {
   emits('sendRoomInfo', room)
 }
 
+const wsConnectionsRefresh = async (room: Room) => {
+  emits('sendRoomInfo', room)
+}
+
 const inputRoomId: Ref<string> = ref('')
   const deleteRoom = async () => {
     await useFetch('/api/rooms/:id',
@@ -131,6 +135,7 @@ watch(() => props.message, () => {
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
+        @wsConnectionsRefresh="wsConnectionsRefresh"
       />
     </div>
     <div  v-for="(room, i) in roomList" :key="i">

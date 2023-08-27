@@ -1,9 +1,5 @@
-<script setup>
-const layout = "header"
-</script>
-
 <template>
-  <NuxtLayout :name="layout">
+  <v-app>
     <NuxtPage />
-  </NuxtLayout>
+  </v-app>
 </template>

@@ -42,7 +42,7 @@ exports.websocketApp = ws(
       } = event;
 
       await Promise.all(connections.map(async (connection) => {
-        await postToConnection({ echo: body, id: connection }, connection);
+        await postToConnection({ echo: body, id: connection, wsConnections: connections.length }, connection);
       }))
 
       return { statusCode: 200 };
