@@ -10,11 +10,12 @@ export default class Card {
   constructor(
     question: string,
     answer: string ,
-    cardSetId: CardSetId
+    cardSetId: string,
+    id?: string
   ) {
-    this.id = new CardId
     this.question = question
     this.answer = answer
-    this.cardSetId = cardSetId
+    this.cardSetId = new CardSetId(cardSetId)
+    id ? this.id = new CardId(id) : this.id = new CardId
   }
 }

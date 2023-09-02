@@ -1,18 +1,22 @@
 import ScoreId from './ScoreId'
+import CardId from '~/domain/Card/CardId'
 import RoomId from '~/domain/Room/RoomId'
 import UserId from '~/domain/User/UserId'
 
 export default class Score {
   readonly id: ScoreId
+  cardId: CardId
   roomId: RoomId
-  playerId: UserId
+  userId: UserId
 
   constructor(
-    roomId: RoomId,
-    playerId: UserId
+    cardId: string,
+    roomId: string,
+    userId: string
   ) {
     this.id = new ScoreId
-    this.roomId = roomId
-    this.playerId = playerId
+    this.cardId = new CardId(cardId)
+    this.roomId = new RoomId(roomId)
+    this.userId = new UserId(userId)
   }
 }
