@@ -1,26 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import ReconnectingWebSocket from 'reconnecting-websocket'
-import { ulid } from 'ulidx';
 
-const session = useCookie('session')
+// websocket関連----------------------------------------------------------
 const message = ref({})
 const wsConnections = ref(0)
-
-const pageName = ref('PLAY')
-
-const inputUserName: Ref<string> = ref('')
-let sessionUser: Ref<{id: string, name: string}> = ref()
-const inputUserId: string = ''
-const { data: userList } = await useLazyFetch('/api/users',
-  { 
-    method: 'get',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-)
-
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -44,71 +27,26 @@ const closeConnection = () => {
   // 切断
   ws.close()
 }
-
-const findUserById = async (session) => {
-  const { data: userResponse } = await useFetch('/api/users/:id',
-    { 
-      method: 'get',
-      params: { id: session},
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  return userResponse
-}
-if (session) {
-  sessionUser = await findUserById(session)
-}
-
-const createUser = async () => {
-  if (inputUserName.value) {
-    session.value = ulid()
-    await useFetch('/api/users',
-      { 
-        method: 'post',
-        body: { 
-          id: session,
-          name: inputUserName
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    )
-  }
-}
-
-const deleteUser = async () => {
-  await useFetch('/api/users/:id',
-    { 
-      method: 'delete',
-      params: { id: inputUserId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-}
-
+// -------------------------------------------------------------------------
+const isRecognized = ref(false)
+const pageName = ref('PLAY')
 const pageSelect = async (pagename) => {
   pageName.value = pagename
 }
+const sessionUser: Ref<{id: string, name: string}> = ref()
 
-const validateNum = value => !!value || 'お名前を1文字以上で入力してください'
+const receiveSessionUser = async (user) => {
+  sessionUser.value = user
+  isRecognized.value = true
+}
 </script>
 
 <template>
   <v-app>
-    <div v-if="!session">
-      <v-text-field v-model="inputUserName" label="あなたの名前を入力してください" :rules="[validateNum]" />
-      <v-btn @click="createUser">createUser</v-btn>
-      <v-list>
-        <v-list-item v-for="(t, i) in userList" :key="i">
-          [id:{{ t.id }}] [name:{{ t.name }}]
-        </v-list-item>
-      </v-list>
-      <NuxtLink to="/user">Chat</NuxtLink>
+    <div v-if="!isRecognized">
+      <SESSION
+        @receive-session-user="receiveSessionUser"
+      />
     </div>
     <div v-else>
       <HEADER
@@ -127,13 +65,10 @@ const validateNum = value => !!value || 'お名前を1文字以上で入力し�
         <EDITROOM
         />
       </div>
-      こんにちは {{ sessionUser.name }} さん
-      <v-list>
-        <v-list-item v-for="(t, i) in userList" :key="i">
-          [id:{{ t.id }}] [name:{{ t.name }}]
-        </v-list-item>
-      </v-list>
-      <NuxtLink to="/user">Chat</NuxtLink>
+      <div v-else="pageName==='DB'">
+        <EDITDB
+        />
+      </div>
     </div>
   </v-app>
 </template>

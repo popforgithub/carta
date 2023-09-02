@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isJsxOpeningElement } from 'typescript';
+
 type Room = {
   id: string,
   name: string,
@@ -13,11 +15,13 @@ const props = defineProps<{
   joinFlag: boolean
 }>()
 const sessionId = ref(props.sessionId)
+const room = ref(props.room)
 const joinFlag = ref(props.joinFlag)
 const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
+  (e: 'closeRecruitment', v: Room): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
 
@@ -64,6 +68,9 @@ const leaveRoom = async () => {
   isJoined.value = false
   emits('leaveRoom', props.room, isJoined.value)
 }
+const closeRecruitment = async () => {
+  emits('closeRecruitment', props.room)
+}
 
 watch(() => props.room, () => {
   refreshUserNames()
@@ -97,7 +104,7 @@ emits('wsConnectionsRefresh', props.room)
       </div>
     </v-card-item>
 
-    <v-card-actions class="border" style="display: flex; justify-content: space-around;">
+    <v-card-actions class="border" style="display: flex; justify-content: space-around;" :disabled="!props.room.isOpen">
       <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsPlayer" :disabled="joinFlag">
         参加
       </v-btn>
@@ -107,7 +114,7 @@ emits('wsConnectionsRefresh', props.room)
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn variant="outlined" class="border" :disabled="!isJoined && joinFlag">
+      <v-btn variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="closeRecruitment">
         試合開始
       </v-btn>
     </v-card-actions>

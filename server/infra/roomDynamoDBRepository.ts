@@ -38,7 +38,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const roomList = response.Items.map((room) => {
       const id = room.id?.['S']
       const name = room.name?.['S']
-      const isOpen = room.isOpen?.['BOOL']
+      const isOpen = room.isOpen['BOOL']
       const playerIds = room.playerIds?.['L']?.map(playerId => playerId['S'] || '') || []
       const audienceIds = room.audienceIds?.['L']?.map(audienceId => audienceId['S'] || '') || []
       
@@ -59,13 +59,12 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const response = await this._docClient.send(command)
     if (!response.Item) { throw new Error('infraのfindByIdでroomが見つからない') }
 
-    return new Room(
-      response.Item.id,
-      response.Item.name,
-      response.Item.isOpen,
-      response.Item.playerIds,
-      response.Item.audienceIds
-    )
+    const id: string = response.Item.id
+    const name: string = response.Item.name
+    const isOpen: boolean = response.Item.isOpen
+    const playerIds: Array<string> = response.Item.playerIds
+    const audienceIds: Array<string> = response.Item.audienceIds
+    return new Room(id, name, isOpen, playerIds, audienceIds)
   }
 
   async create(room: Room): Promise<void> {
@@ -91,6 +90,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
   }
 
   async update(room: Room): Promise<void> {
+    console.log('infraUPDATE', room.isOpen, typeof(room.isOpen))
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },

@@ -48,12 +48,10 @@ const pageSelect = (menuItem: string) => {
       </v-app-bar>
       <v-navigation-drawer id="v-navigation-drawer-for-mobile" v-model="drawer" fixed temporary>
         <v-list nav dense>
-          <v-list-item-group>
-            <v-list-item v-for="(menuItem, index) in menuItems" :key="index">
-              <v-list-item-title>{{ menuItem }}</v-list-item-title>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
+          <v-list-item v-for="(menuItem, index) in menuItems" :key="index">
+            <v-list-item-title>{{ menuItem }}</v-list-item-title>
+          </v-list-item>
+      </v-list>
       </v-navigation-drawer>
     </header>
     <div id="overlap-prevention"></div>

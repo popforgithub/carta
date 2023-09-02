@@ -25,7 +25,8 @@ const { data: roomList, refresh } = await useLazyFetch('/api/rooms', {
   },
 })
 
-const updateRoom = async (room) => {
+const updateRoom = async (room: Room) => {
+  console.log('frontUPDATE', room.isOpen, typeof(room.isOpen))
   await useFetch('/api/rooms/:id',
   { 
     method: 'put',
@@ -43,7 +44,7 @@ const updateRoom = async (room) => {
 refresh()
 }
 
-const joinFlag = ref()
+const joinFlag: Ref<boolean> = ref(false)
 const joinAsPlayer = async (room, isJoined) => {
   joinFlag.value = isJoined
   room.playerIds.push(sessionId.value)
@@ -62,6 +63,12 @@ const leaveRoom = async (room: Room, isJoined) => {
   joinFlag.value = isJoined
   room.playerIds = room.playerIds.filter((id: string) => id !== sessionId.value)
   room.audienceIds = room.audienceIds.filter(id => id !== sessionId.value)
+  await updateRoom(room)
+  emits('sendRoomInfo', room)
+}
+
+const closeRecruitment = async (room: Room) => {
+  room.isOpen = false
   await updateRoom(room)
   emits('sendRoomInfo', room)
 }
@@ -118,11 +125,9 @@ watch(() => props.message, () => {
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
+        @closeRecruitment="closeRecruitment"
         @wsConnectionsRefresh="wsConnectionsRefresh"
       />
-    </div>
-    <div  v-for="(room, i) in roomList" :key="i">
-      {{ room }}
     </div>
   </div>
 </template>
