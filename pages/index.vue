@@ -62,19 +62,21 @@ if (session) {
 }
 
 const createUser = async () => {
-  session.value = ulid()
-  await useFetch('/api/users',
-    { 
-      method: 'post',
-      body: { 
-        id: session,
-        name: inputUserName
-      },
-      headers: {
-        'Content-Type': 'application/json'
+  if (inputUserName.value) {
+    session.value = ulid()
+    await useFetch('/api/users',
+      { 
+        method: 'post',
+        body: { 
+          id: session,
+          name: inputUserName
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-    }
-  )
+    )
+  }
 }
 
 const deleteUser = async () => {
@@ -92,12 +94,14 @@ const deleteUser = async () => {
 const pageSelect = async (pagename) => {
   pageName.value = pagename
 }
+
+const validateNum = value => !!value || 'お名前を1文字以上で入力してください'
 </script>
 
 <template>
   <v-app>
     <div v-if="!session">
-      <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
+      <v-text-field v-model="inputUserName" label="あなたの名前を入力してください" :rules="[validateNum]" />
       <v-btn @click="createUser">createUser</v-btn>
       <v-list>
         <v-list-item v-for="(t, i) in userList" :key="i">

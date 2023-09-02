@@ -9,17 +9,19 @@ const { data: roomList, refresh } = await useLazyFetch('/api/rooms', {
 
 const inputRoomName = ref('')
 const createRoom = async () => {
-  await useFetch('/api/rooms',
-  { 
-    method: 'post',
-    body: { 
-      name: inputRoomName
-    },
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
-  refresh()
+  if (inputRoomName.value) {
+    await useFetch('/api/rooms',
+    { 
+      method: 'post',
+      body: { 
+        name: inputRoomName
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    refresh()
+  }
 }
 const alartMessage = ref('')
 const deleteRoom = async (room) => {
@@ -39,6 +41,8 @@ const deleteRoom = async (room) => {
     alartMessage.value = '入室中のユーザーがいるので削除できません'
   }
 }
+
+const validateNum = value => !!value || 'ルーム名は1文字以上で入力してください'
 </script>
 
 <template>
@@ -55,7 +59,7 @@ const deleteRoom = async (room) => {
         </td>
       </tr>
     </table>
-    <v-text-field class="field" v-model="inputRoomName" label="作成するルーム名を入力してください" />
+    <v-text-field class="field" v-model="inputRoomName" label="作成するルーム名を入力してください" :rules="[validateNum]" />
     <v-btn class="btn" @click="createRoom">createRoom</v-btn>
   </div>
 </template>
