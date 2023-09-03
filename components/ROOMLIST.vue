@@ -16,6 +16,7 @@ const sessionId = props.sessionId
 
 const emits = defineEmits<{
   (e: 'sendRoomInfo', v: Room): void
+  (e: 'makeRoomConnection'): void
 }>()
 
 const { data: roomList, refresh } = await useLazyFetch('/api/rooms', { 
@@ -53,6 +54,7 @@ const joinAsPlayer = async (room, isJoined) => {
   room.playerIds.push(sessionId.value)
   await updateRoom(room)
   emits('sendRoomInfo', room)
+  emits('makeRoomConnection')
 }
 
 const joinAsAudience = async (room, isJoined) => {
@@ -70,7 +72,7 @@ const leaveRoom = async (room: Room, isJoined) => {
   emits('sendRoomInfo', room)
 }
 
-const closeRecruitment = async (room: Room) => {
+const startMatch = async (room: Room) => {
   room.isOpen = false
   await updateRoom(room)
   emits('sendRoomInfo', room)
@@ -129,7 +131,7 @@ watch(() => props.message, () => {
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
-        @closeRecruitment="closeRecruitment"
+        @startMatch="startMatch"
         @wsConnectionsRefresh="wsConnectionsRefresh"
       />
     </div>

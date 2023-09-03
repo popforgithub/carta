@@ -22,7 +22,7 @@ const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
-  (e: 'closeRecruitment', v: Room): void
+  (e: 'startMatch', v: Room): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
 
@@ -71,8 +71,8 @@ const leaveRoom = async () => {
   isJoined.value = false
   emits('leaveRoom', props.room, isJoined.value)
 }
-const closeRecruitment = async () => {
-  emits('closeRecruitment', props.room)
+const startMatch = async () => {
+  emits('startMatch', props.room)
 }
 
 watch(() => props.room, () => {
@@ -89,8 +89,8 @@ emits('wsConnectionsRefresh', props.room)
       <div class="text-center">
         <div class="room-name text-h6 mb-1">
           {{ props.room.name }}
-          <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー募集中</h6>
-          <h6 v-if="!props.room.isOpen" style="color: red;">エントリー受付終了</h6>
+          <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー受付中</h6>
+          <h6 v-if="!props.room.isOpen" style="color: red;">試合中</h6>
         </div>
         <h6>参加者</h6>
         <v-list class="players-list">
@@ -117,8 +117,8 @@ emits('wsConnectionsRefresh', props.room)
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="closeRecruitment">
-        試合開始
+      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="startMatch">
+        準備完了
       </v-btn>
     </v-card-actions>
   </v-card>

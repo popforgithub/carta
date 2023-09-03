@@ -17,6 +17,12 @@ const sendRoomInfo = (room) => {
   ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: room}))
 }
 
+const makeRoomConnection = (room) => {
+  // サーバへのデータ送信
+  ws.send(JSON.stringify({ action: "makeRoomConnections" ,body: room}))
+}
+
+
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
   message.value = JSON.parse(event.data).echo
