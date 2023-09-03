@@ -18,6 +18,7 @@ const sessionId = ref(props.sessionId)
 const room = ref(props.room)
 const joinFlag = ref(props.joinFlag)
 const emits = defineEmits<{
+  (e: 'joinCheck', b: boolean): void
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
@@ -53,9 +54,11 @@ refreshUserNames()
 const isJoined: Ref<boolean> = ref()
 if (props.room.playerIds.find((id: string) => id === sessionId.value) || props.room.audienceIds.find(id => id === sessionId.value)) {
   isJoined.value = true
+  emits('joinCheck', isJoined.value)
 } else {
   isJoined.value = false
 }
+
 const joinAsPlayer = async () => {
   isJoined.value = true
   emits('joinAsPlayer', props.room, isJoined.value)
@@ -114,7 +117,7 @@ emits('wsConnectionsRefresh', props.room)
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="closeRecruitment">
+      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="closeRecruitment">
         試合開始
       </v-btn>
     </v-card-actions>

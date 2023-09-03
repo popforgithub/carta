@@ -28,6 +28,7 @@ const closeConnection = () => {
   ws.close()
 }
 // -------------------------------------------------------------------------
+
 const isRecognized = ref(false)
 const pageName = ref('PLAY')
 const pageSelect = async (pagename) => {

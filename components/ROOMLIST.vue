@@ -26,7 +26,6 @@ const { data: roomList, refresh } = await useLazyFetch('/api/rooms', {
 })
 
 const updateRoom = async (room: Room) => {
-  console.log('frontUPDATE', room.isOpen, typeof(room.isOpen))
   await useFetch('/api/rooms/:id',
   { 
     method: 'put',
@@ -45,6 +44,10 @@ refresh()
 }
 
 const joinFlag: Ref<boolean> = ref(false)
+const joinCheck = async (isJoined) => {
+  joinFlag.value = isJoined
+}
+
 const joinAsPlayer = async (room, isJoined) => {
   joinFlag.value = isJoined
   room.playerIds.push(sessionId.value)
@@ -122,6 +125,7 @@ watch(() => props.message, () => {
         :roomAudienceIds = "room.audienceIds"
         :sessionId = "sessionId"
         :joinFlag = "joinFlag"
+        @joinCheck="joinCheck"
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"

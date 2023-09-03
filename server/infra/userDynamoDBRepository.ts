@@ -51,7 +51,12 @@ export default class UserDynamoDBRepository implements IUserRepository {
     })
     
     const response = await this._docClient.send(command)
-    if (!response.Item) { throw new Error('infraのfindByIdでuserが見つからない')}
+    if (!response.Item) {
+      return new User(
+        'notFoundById',
+        'notFoundById'
+      )
+    }
     
     return new User(
       response.Item.id,

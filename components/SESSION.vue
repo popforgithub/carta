@@ -11,21 +11,26 @@ const inputUserId: string = ''
 const inputUserName: Ref<string> = ref('')
 const sessionUser: Ref<{id: string, name: string}> = ref()
 
-// const findUserById = async (session) => {
-//   const { data: userResponse } = await useFetch('/api/users/:id',
-//     { 
-//       method: 'get',
-//       params: { id: session},
-//       headers: {
-//         'Content-Type': 'application/json'
-//       }
-//     }
-//   )
-//   return userResponse
-// }
-// if (session) {
-//   sessionUser = await findUserById(session)
-// }
+const findUserById = async (session) => {
+  const { data: userResponse } = await useFetch('/api/users/:id',
+    { 
+      method: 'get',
+      params: { id: session},
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  return userResponse
+}
+if (session.value) {
+  const response = await findUserById(session)
+  sessionUser.value = {
+    id: response.value.id,
+    name: response.value.name
+  }
+  if (sessionUser.value.id !== 'notFoundById') { emits('receiveSessionUser', sessionUser.value) }
+}
 
 const createUser = async () => {
   if (inputUserName.value) {
@@ -66,7 +71,7 @@ const validateNum = value => !!value || 'お名前を1文字以上で入力し�
 </script>
 
 <template>
-  <div v-if="!session">
+  <div v-if="!session || sessionUser.id === 'notFoundById'">
     <v-text-field v-model="inputUserName" label="あなたの名前を入力してください" :rules="[validateNum]" />
     <v-btn @click="createUser">createUser</v-btn>
   </div>

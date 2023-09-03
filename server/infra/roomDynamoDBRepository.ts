@@ -90,7 +90,6 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
   }
 
   async update(room: Room): Promise<void> {
-    console.log('infraUPDATE', room.isOpen, typeof(room.isOpen))
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
