@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import ReconnectingWebSocket from 'reconnecting-websocket'
+type WsRoom = {
+  id: string,
+  memberIds: string[]
+}
+const matchFlag = ref(false)
 
 // websocket関連----------------------------------------------------------
+const wsRoom: WsRoom = {id: '', memberIds: []}
 const message = ref({})
 const wsConnections = ref(0)
 // WebSocketのクライアントの生成
@@ -17,9 +23,13 @@ const sendRoomInfo = (room) => {
   ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: room}))
 }
 
-const makeRoomConnection = (room) => {
+const makeRoomConnections = (roomId) => {
+  ws.send(JSON.stringify({ action: "makeRoomConnections" ,body: roomId}))
+}
+
+const sendMessageToRoom = (wsRoom) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "makeRoomConnections" ,body: room}))
+  ws.send(JSON.stringify({ action: "sendMessageToRoom" ,body: wsRoom}))
 }
 
 
@@ -41,11 +51,25 @@ const pageSelect = async (pagename) => {
   pageName.value = pagename
 }
 const sessionUser: Ref<{id: string, name: string}> = ref()
-
 const receiveSessionUser = async (user) => {
   sessionUser.value = user
   isRecognized.value = true
 }
+
+const iAmReady = async (roomId: string) => {
+  makeRoomConnections(roomId)
+}
+
+// const startMatch = async (room) => {
+//   const roomMemberIds = []
+//   roomMemberIds.push(room.playerIds)
+//   roomMemberIds.push(room.audienceIds)
+//   roomMemberIds.flat()
+//   wsRoom.id = room.id
+//   wsRoom.memberIds = roomMemberIds
+//   sendMessageToRoom(wsRoom)
+//   // matchFlag.value = roomMemberIds.includes(sessionUser.value.id)
+// }
 </script>
 
 <template>
@@ -61,21 +85,23 @@ const receiveSessionUser = async (user) => {
         :wsConnections="ref(wsConnections)"
         @pageSelect="pageSelect"
       />
-      <div v-if="pageName==='PLAY'">
-        <ROOMLIST
-          :sessionId="ref(sessionUser.id)"
-          :message="ref(message)"
-          @sendRoomInfo="sendRoomInfo"
-        />
-      </div>
-      <div v-else-if="pageName==='ROOM'">
-        <EDITROOM
-        />
-      </div>
-      <div v-else="pageName==='DB'">
-        <EDITDB
-        />
-      </div>
+
+        <div v-if="pageName==='PLAY'">
+          <ROOMLIST
+            :sessionId="ref(sessionUser.id)"
+            :message="ref(message)"
+            @sendRoomInfo="sendRoomInfo"
+            @i-am-ready="iAmReady"
+          />
+        </div>
+        <div v-else-if="pageName==='ROOM'">
+          <EDITROOM
+          />
+        </div>
+        <div v-else="pageName==='DB'">
+          <EDITDB
+          />
+        </div>
     </div>
   </v-app>
 </template>

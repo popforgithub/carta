@@ -1,7 +1,8 @@
 const ws = require("aws-lambda-ws-server");
+
 // 接続IDをメモリに保存
 let allConnections: string[] = []
-let roomConnections: string[] = []
+const wsRooms: WsRoom[] = []
 
 exports.websocketApp = ws(
   ws.handler({
@@ -51,22 +52,34 @@ exports.websocketApp = ws(
 
     // "makeRoomConnections" アクションのハンドラ
     async makeRoomConnections(event: WebSocketEvent) {
-      console.log("connection %s", event.id);
-      roomConnections.push(event.id)
-      return { statusCode: 200 };
-    },
-
-    // "sendMessageToTheRoom" アクションのハンドラ
-    async sendMessageToTheRoom(event: WebSocketEvent) {
       const {
         id: connectionId,
         message: { body },
         context: { postToConnection }
       } = event;
 
-      await Promise.all(roomConnections.map(async (connection) => {
-        await postToConnection({ echo: body, id: connection, wsConnections: roomConnections.length }, connection);
-      }))
+      if (!wsRooms.some(wsRoom => wsRoom.id === body)) {
+        const newRoom: WsRoom = {id: body, memberIds: [connectionId]}
+        wsRooms.push(newRoom)
+      } else {
+        for (let i = 0; i < wsRooms.length; i++) {
+          if (wsRooms[i].id === body) {
+            return wsRooms[i].memberIds.push(connectionId)
+          }
+        }
+      }
+    },
+
+    // "sendMessageToRoom" アクションのハンドラ
+    async sendMessageToRoom(event: WebSocketEvent) {
+
+
+
+
+      // if (body.id)
+      // await Promise.all(roomConnections.map(async (connection) => {
+      //   await postToConnection({ echo: body, id: connection, wsConnections: roomConnections.length }, connection);
+      // }))
 
       return { statusCode: 200 };
     },
@@ -97,3 +110,8 @@ type WebSocketEvent = {
     body: any;
   };
 };
+
+type WsRoom = {
+  id: string,
+  memberIds: string[]
+}

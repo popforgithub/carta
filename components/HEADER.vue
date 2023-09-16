@@ -14,7 +14,7 @@ watch(() => props.wsConnections, () => {
   wsConnections.value = ref(props.wsConnections).value
 })
 
-const menuItems = ['PLAY', 'ROOM', 'CARTA', 'DB']
+const menuItems = ['PLAY', 'ROOM', 'CARD', 'DB']
 const drawer: Ref<boolean> = ref(false)
 const openDrawer = () => {
   drawer.value = true

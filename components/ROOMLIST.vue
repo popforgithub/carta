@@ -16,6 +16,7 @@ const sessionId = props.sessionId
 
 const emits = defineEmits<{
   (e: 'sendRoomInfo', v: Room): void
+  (e: 'iAmReady', v: string): void
   (e: 'makeRoomConnection'): void
 }>()
 
@@ -72,11 +73,16 @@ const leaveRoom = async (room: Room, isJoined) => {
   emits('sendRoomInfo', room)
 }
 
-const startMatch = async (room: Room) => {
-  room.isOpen = false
-  await updateRoom(room)
-  emits('sendRoomInfo', room)
+const iAmReady = async (roomId: string) => {
+  emits('iAmReady', roomId)
 }
+
+// const iAmReady = async (room: Room) => {
+//   room.isOpen = false
+//   await updateRoom(room)
+//   emits('sendRoomInfo', room)
+//   emits('iAmReady', room)
+// }
 
 const wsConnectionsRefresh = async (room: Room) => {
   emits('sendRoomInfo', room)
@@ -131,7 +137,7 @@ watch(() => props.message, () => {
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
-        @startMatch="startMatch"
+        @iAmReady="iAmReady"
         @wsConnectionsRefresh="wsConnectionsRefresh"
       />
     </div>

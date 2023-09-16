@@ -22,7 +22,7 @@ const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
-  (e: 'startMatch', v: Room): void
+  (e: 'iAmReady', v: string): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
 
@@ -71,8 +71,8 @@ const leaveRoom = async () => {
   isJoined.value = false
   emits('leaveRoom', props.room, isJoined.value)
 }
-const startMatch = async () => {
-  emits('startMatch', props.room)
+const iAmReady = async () => {
+  emits('iAmReady', props.room.id)
 }
 
 watch(() => props.room, () => {
@@ -117,7 +117,7 @@ emits('wsConnectionsRefresh', props.room)
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="startMatch">
+      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="iAmReady">
         準備完了
       </v-btn>
     </v-card-actions>
