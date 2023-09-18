@@ -10,13 +10,15 @@ type Room = {
 
 const props = defineProps<{
   sessionId: Ref<string>,
-  message: Ref<object>
+  message: Ref<object>,
+  roomInfo: { roomId: string, connectionIds: string[] } | undefined
 }>()
 const sessionId = props.sessionId
 
 const emits = defineEmits<{
   (e: 'sendRoomInfo', v: Room): void
   (e: 'iAmReady', v: string): void
+  (e: 'startMatch', v: Room): void
   (e: 'makeRoomConnection'): void
 }>()
 
@@ -77,12 +79,12 @@ const iAmReady = async (roomId: string) => {
   emits('iAmReady', roomId)
 }
 
-// const iAmReady = async (room: Room) => {
-//   room.isOpen = false
-//   await updateRoom(room)
-//   emits('sendRoomInfo', room)
-//   emits('iAmReady', room)
-// }
+const startMatch = async (room: Room) => {
+  room.isOpen = false
+  await updateRoom(room)
+  emits('sendRoomInfo', room)
+  emits('startMatch', room)
+}
 
 const wsConnectionsRefresh = async (room: Room) => {
   emits('sendRoomInfo', room)
@@ -131,6 +133,7 @@ watch(() => props.message, () => {
         :roomIsOpen = "room.isOpen"
         :roomPlayerIds = "room.playerIds"
         :roomAudienceIds = "room.audienceIds"
+        :roomInfo = "roomInfo"
         :sessionId = "sessionId"
         :joinFlag = "joinFlag"
         @joinCheck="joinCheck"
@@ -138,6 +141,7 @@ watch(() => props.message, () => {
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
         @iAmReady="iAmReady"
+        @startMatch="startMatch"
         @wsConnectionsRefresh="wsConnectionsRefresh"
       />
     </div>

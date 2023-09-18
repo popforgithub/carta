@@ -2,7 +2,7 @@ const ws = require("aws-lambda-ws-server");
 
 // 接続IDをメモリに保存
 let allConnections: string[] = []
-const wsRooms: WsRoom[] = []
+let wsRooms: WsRoom[] = []
 
 exports.websocketApp = ws(
   ws.handler({
@@ -15,9 +15,18 @@ exports.websocketApp = ws(
 
     // 切断時に通る
     async disconnect(event: WebSocketEvent) {
+      const { postToConnection } = event.context
       console.log("disconnect %s", event.id);
       allConnections = allConnections.filter((id) => id !== event.id )
-      return { statusCode: 200 };
+      for (let i = 0; i < wsRooms.length; i++) {
+        if (wsRooms[i].connectionIds.includes(event.id)) {
+          wsRooms[i].connectionIds = wsRooms[i].connectionIds.filter((id) => id !== event.id)
+          await Promise.all(allConnections.map(async (connection) => {
+            await postToConnection({ id: connection, wsConnections: allConnections.length, roomInfo: wsRooms[i] }, connection);
+          }))
+          return { statusCode: 200 };
+        }
+      }
     },
 
     // 未定義の action を指定すると通る
@@ -58,13 +67,21 @@ exports.websocketApp = ws(
         context: { postToConnection }
       } = event;
 
-      if (!wsRooms.some(wsRoom => wsRoom.id === body)) {
-        const newRoom: WsRoom = {id: body, memberIds: [connectionId]}
+      if (!wsRooms.some(wsRoom => wsRoom.roomId === body)) {
+        const newRoom: WsRoom = {roomId: body, connectionIds: [connectionId]}
         wsRooms.push(newRoom)
+        await Promise.all(allConnections.map(async (connection) => {
+          await postToConnection({ echo: body, id: connection, roomInfo: newRoom }, connection);
+        }))
+        return { statusCode: 200 };
       } else {
         for (let i = 0; i < wsRooms.length; i++) {
-          if (wsRooms[i].id === body) {
-            return wsRooms[i].memberIds.push(connectionId)
+          if (wsRooms[i].roomId === body) {
+            wsRooms[i].connectionIds.push(connectionId)
+            await Promise.all(allConnections.map(async (connection) => {
+              await postToConnection({ echo: body, id: connection, roomInfo: wsRooms[i] }, connection);
+            }))
+            return { statusCode: 200 };
           }
         }
       }
@@ -72,16 +89,20 @@ exports.websocketApp = ws(
 
     // "sendMessageToRoom" アクションのハンドラ
     async sendMessageToRoom(event: WebSocketEvent) {
+      const {
+        id: connectionId,
+        message: { body },
+        context: { postToConnection }
+      } = event;
 
-
-
-
-      // if (body.id)
-      // await Promise.all(roomConnections.map(async (connection) => {
-      //   await postToConnection({ echo: body, id: connection, wsConnections: roomConnections.length }, connection);
-      // }))
-
-      return { statusCode: 200 };
+      for (let i = 0; i < wsRooms.length; i++) {
+        if (wsRooms[i].roomId === body.id) {
+          await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
+            await postToConnection({ matchRoom: body, id: connection }, connection);
+          }))
+          return { statusCode: 200 };
+        }
+      }
     },
   })
 );
@@ -112,6 +133,6 @@ type WebSocketEvent = {
 };
 
 type WsRoom = {
-  id: string,
-  memberIds: string[]
+  roomId: string,
+  connectionIds: string[]
 }

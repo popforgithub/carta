@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import ReconnectingWebSocket from 'reconnecting-websocket'
-type WsRoom = {
+type MatchRoom = {
   id: string,
   memberIds: string[]
 }
 const matchFlag = ref(false)
 
 // websocket関連----------------------------------------------------------
-const wsRoom: WsRoom = {id: '', memberIds: []}
+const matchRoom: Ref<MatchRoom> = ref({id: '', memberIds: []})
 const message = ref({})
 const wsConnections = ref(0)
+const roomInfo = ref({roomId: '', connectionIds: []})
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -27,16 +28,18 @@ const makeRoomConnections = (roomId) => {
   ws.send(JSON.stringify({ action: "makeRoomConnections" ,body: roomId}))
 }
 
-const sendMessageToRoom = (wsRoom) => {
+const sendMessageToRoom = (matchRoom) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "sendMessageToRoom" ,body: wsRoom}))
+  ws.send(JSON.stringify({ action: "sendMessageToRoom" ,body: matchRoom}))
 }
 
 
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
-  message.value = JSON.parse(event.data).echo
-  wsConnections.value = JSON.parse(event.data).wsConnections
+  if (JSON.parse(event.data).echo) { message.value = JSON.parse(event.data).echo }
+  if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
+  if (JSON.parse(event.data).roomInfo) { roomInfo.value = JSON.parse(event.data).roomInfo }
+  if (JSON.parse(event.data).matchRoom) { matchRoom.value = JSON.parse(event.data).matchRoom }
 }
 
 const closeConnection = () => {
@@ -56,20 +59,16 @@ const receiveSessionUser = async (user) => {
   isRecognized.value = true
 }
 
-const iAmReady = async (roomId: string) => {
-  makeRoomConnections(roomId)
+const startMatch = async (room) => {
+  const roomMemberIds = []
+  roomMemberIds.push(room.playerIds)
+  roomMemberIds.push(room.audienceIds)
+  roomMemberIds.flat()
+  matchRoom.value.id = room.id
+  matchRoom.value.memberIds = roomMemberIds
+  sendMessageToRoom(matchRoom.value)
+  // matchFlag.value = memberIds.includes(sessionUser.value.id)
 }
-
-// const startMatch = async (room) => {
-//   const roomMemberIds = []
-//   roomMemberIds.push(room.playerIds)
-//   roomMemberIds.push(room.audienceIds)
-//   roomMemberIds.flat()
-//   wsRoom.id = room.id
-//   wsRoom.memberIds = roomMemberIds
-//   sendMessageToRoom(wsRoom)
-//   // matchFlag.value = roomMemberIds.includes(sessionUser.value.id)
-// }
 </script>
 
 <template>
@@ -85,23 +84,24 @@ const iAmReady = async (roomId: string) => {
         :wsConnections="ref(wsConnections)"
         @pageSelect="pageSelect"
       />
-
-        <div v-if="pageName==='PLAY'">
-          <ROOMLIST
-            :sessionId="ref(sessionUser.id)"
-            :message="ref(message)"
-            @sendRoomInfo="sendRoomInfo"
-            @i-am-ready="iAmReady"
-          />
-        </div>
-        <div v-else-if="pageName==='ROOM'">
-          <EDITROOM
-          />
-        </div>
-        <div v-else="pageName==='DB'">
-          <EDITDB
-          />
-        </div>
+      <div v-if="pageName==='PLAY'">
+        <ROOMLIST
+          :sessionId="ref(sessionUser.id)"
+          :message="ref(message)"
+          :roomInfo="roomInfo"
+          @sendRoomInfo="sendRoomInfo"
+          @i-am-ready="makeRoomConnections"
+          @start-match="startMatch"
+        />
+      </div>
+      <div v-else-if="pageName==='ROOM'">
+        <EDITROOM
+        />
+      </div>
+      <div v-else="pageName==='DB'">
+        <EDITDB
+        />
+      </div>
     </div>
   </v-app>
 </template>
