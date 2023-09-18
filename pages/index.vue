@@ -10,7 +10,6 @@ const matchFlag = ref(false)
 const matchRoom: Ref<MatchRoom> = ref({id: '', memberIds: []})
 const message = ref({})
 const wsConnections = ref(0)
-const roomInfo = ref({roomId: '', connectionIds: []})
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -38,7 +37,6 @@ const sendMessageToRoom = (matchRoom) => {
 ws.onmessage = async (event) => {
   if (JSON.parse(event.data).echo) { message.value = JSON.parse(event.data).echo }
   if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
-  if (JSON.parse(event.data).roomInfo) { roomInfo.value = JSON.parse(event.data).roomInfo }
   if (JSON.parse(event.data).matchRoom) { matchRoom.value = JSON.parse(event.data).matchRoom }
 }
 
@@ -88,9 +86,7 @@ const startMatch = async (room) => {
         <ROOMLIST
           :sessionId="ref(sessionUser.id)"
           :message="ref(message)"
-          :roomInfo="roomInfo"
           @sendRoomInfo="sendRoomInfo"
-          @i-am-ready="makeRoomConnections"
           @start-match="startMatch"
         />
       </div>

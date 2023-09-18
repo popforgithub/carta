@@ -22,7 +22,7 @@ exports.websocketApp = ws(
         if (wsRooms[i].connectionIds.includes(event.id)) {
           wsRooms[i].connectionIds = wsRooms[i].connectionIds.filter((id) => id !== event.id)
           await Promise.all(allConnections.map(async (connection) => {
-            await postToConnection({ id: connection, wsConnections: allConnections.length, roomInfo: wsRooms[i] }, connection);
+            await postToConnection({ id: connection, wsConnections: allConnections.length }, connection);
           }))
           return { statusCode: 200 };
         }
@@ -70,17 +70,11 @@ exports.websocketApp = ws(
       if (!wsRooms.some(wsRoom => wsRoom.roomId === body)) {
         const newRoom: WsRoom = {roomId: body, connectionIds: [connectionId]}
         wsRooms.push(newRoom)
-        await Promise.all(allConnections.map(async (connection) => {
-          await postToConnection({ echo: body, id: connection, roomInfo: newRoom }, connection);
-        }))
         return { statusCode: 200 };
       } else {
         for (let i = 0; i < wsRooms.length; i++) {
           if (wsRooms[i].roomId === body) {
             wsRooms[i].connectionIds.push(connectionId)
-            await Promise.all(allConnections.map(async (connection) => {
-              await postToConnection({ echo: body, id: connection, roomInfo: wsRooms[i] }, connection);
-            }))
             return { statusCode: 200 };
           }
         }

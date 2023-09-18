@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { isJsxOpeningElement } from 'typescript';
 
 type Room = {
   id: string,
@@ -12,19 +11,16 @@ type Room = {
 const props = defineProps<{
   sessionId: string
   room: Room
-  roomInfo: { roomId: string, connectionIds: string[] } | undefined
   joinFlag: boolean
 }>()
 const sessionId = ref(props.sessionId)
-const roomInfo = ref()
 const joinFlag = ref(props.joinFlag)
-const isReady = ref(false)
 const emits = defineEmits<{
   (e: 'joinCheck', b: boolean): void
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
-  (e: 'iAmReady', v: string): void
+  (e: 'openDialog'): void
   (e: 'startMatch', v: Room): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
@@ -74,9 +70,8 @@ const leaveRoom = async () => {
   isJoined.value = false
   emits('leaveRoom', props.room, isJoined.value)
 }
-const iAmReady = async () => {
-  isReady.value = true
-  emits('iAmReady', props.room.id)
+const openDialog = async () => {
+
 }
 const startMatch = async () => {
   emits('startMatch', props.room)
@@ -84,12 +79,6 @@ const startMatch = async () => {
 
 watch(() => props.room, () => {
   refreshUserNames()
-})
-
-watch(() => props.roomInfo, () => {
-  if (props.roomInfo && props.roomInfo.roomId === props.room.id) {
-    roomInfo.value = props.roomInfo
-  }
 })
 
 // components読み込み時にws接続数を更新
@@ -117,9 +106,6 @@ emits('wsConnectionsRefresh', props.room)
             {{ audienceName }}
           </div>
         </v-list>
-        <h5 v-if="roomInfo && roomInfo.roomId === props.room.id">
-          {{ roomInfo.connectionIds.length }} 人 / {{ props.room.playerIds.length + props.room.audienceIds.length }} 人 が準備完了です
-        </h5>
       </div>
     </v-card-item>
 
@@ -130,13 +116,10 @@ emits('wsConnectionsRefresh', props.room)
       <v-btn v-if="!isJoined" variant="outlined" class="border" @click="joinAsAudience" :disabled="joinFlag">
         観戦
       </v-btn>
-      <v-btn v-if="isJoined && !isReady" variant="outlined" class="border" @click="leaveRoom">
+      <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn v-if="isJoined &&!isReady" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="iAmReady">
-        準備完了
-      </v-btn>
-      <v-btn v-if="isJoined && isReady" variant="outlined" class="border" @click="startMatch">
+      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="openDialog">
         試合開始
       </v-btn>
     </v-card-actions>
