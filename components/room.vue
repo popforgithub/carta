@@ -71,7 +71,7 @@ const leaveRoom = async () => {
   emits('leaveRoom', props.room, isJoined.value)
 }
 const openDialog = async () => {
-
+  emits('openDialog')
 }
 const startMatch = async () => {
   emits('startMatch', props.room)
@@ -80,9 +80,6 @@ const startMatch = async () => {
 watch(() => props.room, () => {
   refreshUserNames()
 })
-
-// components読み込み時にws接続数を更新
-emits('wsConnectionsRefresh', props.room)
 </script>
 
 <template>

@@ -18,13 +18,14 @@ ws.onopen = async (event) => {
   console.log(event.type, event)
 }
 
-const sendRoomInfo = (room) => {
+const joinRoom = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: room}))
+  ws.send(JSON.stringify({ action: "joinRoom" ,body: room}))
 }
 
-const makeRoomConnections = (roomId) => {
-  ws.send(JSON.stringify({ action: "makeRoomConnections" ,body: roomId}))
+const leaveRoom = (room) => {
+  // サーバへのデータ送信
+  ws.send(JSON.stringify({ action: "leaveRoom" ,body: room}))
 }
 
 const sendMessageToRoom = (matchRoom) => {
@@ -86,7 +87,8 @@ const startMatch = async (room) => {
         <ROOMLIST
           :sessionId="ref(sessionUser.id)"
           :message="ref(message)"
-          @sendRoomInfo="sendRoomInfo"
+          @join-room="joinRoom"
+          @leave-room="leaveRoom"
           @start-match="startMatch"
         />
       </div>

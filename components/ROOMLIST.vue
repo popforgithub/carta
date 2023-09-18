@@ -15,9 +15,9 @@ const props = defineProps<{
 const sessionId = props.sessionId
 
 const emits = defineEmits<{
-  (e: 'sendRoomInfo', v: Room): void
+  (e: 'joinRoom', v: Room): void
+  (e: 'leaveRoom', v: Room): void
   (e: 'startMatch', v: Room): void
-  (e: 'makeRoomConnection'): void
 }>()
 
 const { data: roomList, refresh } = await useLazyFetch('/api/rooms', { 
@@ -54,15 +54,14 @@ const joinAsPlayer = async (room, isJoined) => {
   joinFlag.value = isJoined
   room.playerIds.push(sessionId.value)
   await updateRoom(room)
-  emits('sendRoomInfo', room)
-  emits('makeRoomConnection')
+  emits('joinRoom', room)
 }
 
 const joinAsAudience = async (room, isJoined) => {
   joinFlag.value = isJoined
   room.audienceIds.push(sessionId.value)
   await updateRoom(room)
-  emits('sendRoomInfo', room)
+  emits('joinRoom', room)
 }
 
 const leaveRoom = async (room: Room, isJoined) => {
@@ -70,18 +69,18 @@ const leaveRoom = async (room: Room, isJoined) => {
   room.playerIds = room.playerIds.filter((id: string) => id !== sessionId.value)
   room.audienceIds = room.audienceIds.filter(id => id !== sessionId.value)
   await updateRoom(room)
-  emits('sendRoomInfo', room)
+  emits('leaveRoom', room)
+}
+
+const isDialogActive: Ref<boolean> = ref(false)
+const openDialog = async () => {
+  isDialogActive.value = true
 }
 
 const startMatch = async (room: Room) => {
   room.isOpen = false
   await updateRoom(room)
-  emits('sendRoomInfo', room)
   emits('startMatch', room)
-}
-
-const wsConnectionsRefresh = async (room: Room) => {
-  emits('sendRoomInfo', room)
 }
 
 const inputRoomId: Ref<string> = ref('')
@@ -118,6 +117,23 @@ watch(() => props.message, () => {
 </script>
 
 <template>
+  <v-dialog width="500">
+    <v-card>
+      <v-card-text>
+        現在入室中のメンバーで試合開始しますがよろしいですか？
+      </v-card-text>
+
+      <v-card-actions>
+        <v-btn
+          text="はい"
+        ></v-btn>
+
+        <v-btn
+          text="いいえ"
+        ></v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"
@@ -133,8 +149,8 @@ watch(() => props.message, () => {
         @joinAsPlayer="joinAsPlayer"
         @joinAsAudience="joinAsAudience"
         @leaveRoom="leaveRoom"
+        @openDialog="openDialog"
         @startMatch="startMatch"
-        @wsConnectionsRefresh="wsConnectionsRefresh"
       />
     </div>
   </div>
