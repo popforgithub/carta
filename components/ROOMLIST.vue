@@ -30,10 +30,7 @@ const { data: roomList, refresh } = await useFetch('/api/rooms', {
 
 const reconnectMatch = () => {
   for (const room of JSON.parse(JSON.stringify(roomList.value))) {
-  // for (let i = 0; i < roomList.value.length; i++) {
     const roomMemberIds = []
-    // roomMemberIds.push(roomList[i].playerIds)
-    // roomMemberIds.push(roomList[i].audienceIds)
     roomMemberIds.push(room.playerIds)
     roomMemberIds.push(room.audienceIds)
     if (roomMemberIds.flat().includes(props.sessionId.value)) {

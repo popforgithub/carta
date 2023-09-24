@@ -14,12 +14,13 @@ const createRoom = async () => {
     { 
       method: 'post',
       body: { 
-        name: inputRoomName
+        name: inputRoomName.value
       },
       headers: {
         'Content-Type': 'application/json'
       }
     })
+    inputRoomName.value = ''
     refresh()
   }
 }
@@ -97,5 +98,8 @@ const validateNum = value => !!value || 'ルーム名は1文字以上で入力�
   .field {
     width: 80%;
     margin:auto;
+  }
+  .btn {
+    margin:1%;
   }
 </style>

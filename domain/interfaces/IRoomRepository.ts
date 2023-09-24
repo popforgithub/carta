@@ -1,6 +1,5 @@
 import RoomId from "~/domain/Room/RoomId"
 import Room from "~/domain/Room"
-import UserId from "~/domain/User/UserId"
 
 export default interface IRoomRepository {
 
