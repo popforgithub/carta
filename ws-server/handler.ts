@@ -11,7 +11,7 @@ exports.websocketApp = ws(
       // const { postToConnection } = event.context
       console.log("connection %s", event.id);
       allConnections.push(event.id)
-      // 接続時にヘッダーのカウンターを増やしたい
+      // 接続時にヘッダーのカウンターを更新したい
       // await Promise.all(allConnections.map(async (connection) => {
       //   await postToConnection({ id: connection, wsConnections: allConnections.length }, connection);
       // }))
@@ -92,6 +92,24 @@ exports.websocketApp = ws(
       return { statusCode: 200 };
     },
 
+    // "startMatch" アクションのハンドラ
+    async startMatch(event: WebSocketEvent) {
+      const {
+        id: connectionId,
+        message: { body },
+        context: { postToConnection }
+      } = event;
+
+      for (let i = 0; i < wsRooms.length; i++) {
+        if (wsRooms[i].roomId === body) {
+          await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
+            await postToConnection({ matchFlag: true, id: connection }, connection);
+          }))
+          return { statusCode: 200 };
+        }
+      }
+    },
+
     // "sendMessageToRoom" アクションのハンドラ
     async sendMessageToRoom(event: WebSocketEvent) {
       const {
@@ -103,7 +121,7 @@ exports.websocketApp = ws(
       for (let i = 0; i < wsRooms.length; i++) {
         if (wsRooms[i].roomId === body.id) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ matchRoom: body, id: connection }, connection);
+            await postToConnection({ echo: body, id: connection }, connection);
           }))
           return { statusCode: 200 };
         }

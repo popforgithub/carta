@@ -15,17 +15,33 @@ const props = defineProps<{
 const sessionId = props.sessionId
 
 const emits = defineEmits<{
+  (e: 'reconnectMatch'): void
   (e: 'joinRoom', v: Room): void
   (e: 'leaveRoom', v: Room): void
   (e: 'startMatch', v: Room): void
 }>()
 
-const { data: roomList, refresh } = await useLazyFetch('/api/rooms', { 
+const { data: roomList, refresh } = await useFetch('/api/rooms', { 
   method: 'get',
   headers: {
     'Content-Type': 'application/json'
   },
 })
+
+const reconnectMatch = () => {
+  for (const room of JSON.parse(JSON.stringify(roomList.value))) {
+  // for (let i = 0; i < roomList.value.length; i++) {
+    const roomMemberIds = []
+    // roomMemberIds.push(roomList[i].playerIds)
+    // roomMemberIds.push(roomList[i].audienceIds)
+    roomMemberIds.push(room.playerIds)
+    roomMemberIds.push(room.audienceIds)
+    if (roomMemberIds.flat().includes(props.sessionId.value)) {
+      emits('reconnectMatch')
+    }
+  }
+}
+reconnectMatch()
 
 const updateRoom = async (room: Room) => {
   await useFetch('/api/rooms/:id',
@@ -73,8 +89,13 @@ const leaveRoom = async (room: Room, isJoined) => {
 }
 
 const isDialogActive: Ref<boolean> = ref(false)
-const openDialog = async () => {
+const roomInfoForDialog = ref()
+const openDialog = (room) => {
   isDialogActive.value = true
+  roomInfoForDialog.value = room
+}
+const closeDialog = () => {
+  isDialogActive.value = false
 }
 
 const startMatch = async (room: Room) => {
@@ -117,23 +138,12 @@ watch(() => props.message, () => {
 </script>
 
 <template>
-  <v-dialog width="500">
-    <v-card>
-      <v-card-text>
-        現在入室中のメンバーで試合開始しますがよろしいですか？
-      </v-card-text>
-
-      <v-card-actions>
-        <v-btn
-          text="はい"
-        ></v-btn>
-
-        <v-btn
-          text="いいえ"
-        ></v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <DIALOG 
+    :isActive="isDialogActive"
+    :room="roomInfoForDialog"
+    @startMatch="startMatch"
+    @close="closeDialog"
+  />
   <div>
     <div class="card-container">
       <room v-for="(room, i) in roomList" :key="i"

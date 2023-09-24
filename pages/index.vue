@@ -28,9 +28,9 @@ const leaveRoom = (room) => {
   ws.send(JSON.stringify({ action: "leaveRoom" ,body: room}))
 }
 
-const sendMessageToRoom = (matchRoom) => {
+const startMatch = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "sendMessageToRoom" ,body: matchRoom}))
+  ws.send(JSON.stringify({ action: "startMatch" ,body: room.id}))
 }
 
 
@@ -39,6 +39,7 @@ ws.onmessage = async (event) => {
   if (JSON.parse(event.data).echo) { message.value = JSON.parse(event.data).echo }
   if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
   if (JSON.parse(event.data).matchRoom) { matchRoom.value = JSON.parse(event.data).matchRoom }
+  if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
 }
 
 const closeConnection = () => {
@@ -57,16 +58,8 @@ const receiveSessionUser = async (user) => {
   sessionUser.value = user
   isRecognized.value = true
 }
-
-const startMatch = async (room) => {
-  const roomMemberIds = []
-  roomMemberIds.push(room.playerIds)
-  roomMemberIds.push(room.audienceIds)
-  roomMemberIds.flat()
-  matchRoom.value.id = room.id
-  matchRoom.value.memberIds = roomMemberIds
-  sendMessageToRoom(matchRoom.value)
-  // matchFlag.value = memberIds.includes(sessionUser.value.id)
+const reconnectMatch = () => {
+  matchFlag.value = true
 }
 </script>
 
@@ -83,22 +76,28 @@ const startMatch = async (room) => {
         :wsConnections="ref(wsConnections)"
         @pageSelect="pageSelect"
       />
-      <div v-if="pageName==='PLAY'">
-        <ROOMLIST
-          :sessionId="ref(sessionUser.id)"
-          :message="ref(message)"
-          @join-room="joinRoom"
-          @leave-room="leaveRoom"
-          @start-match="startMatch"
-        />
+      <div v-if="matchFlag && pageName==='PLAY'">
+        <MATCH />
       </div>
-      <div v-else-if="pageName==='ROOM'">
-        <EDITROOM
-        />
-      </div>
-      <div v-else="pageName==='DB'">
-        <EDITDB
-        />
+      <div v-else>
+        <div v-if="pageName==='PLAY'">
+          <ROOMLIST
+            :sessionId="ref(sessionUser.id)"
+            :message="ref(message)"
+            @reconnect-match="reconnectMatch"
+            @join-room="joinRoom"
+            @leave-room="leaveRoom"
+            @start-match="startMatch"
+          />
+        </div>
+        <div v-else-if="pageName==='ROOM'">
+          <EDITROOM
+          />
+        </div>
+        <div v-else="pageName==='DB'">
+          <EDITDB
+          />
+        </div>
       </div>
     </div>
   </v-app>

@@ -20,7 +20,7 @@ const emits = defineEmits<{
   (e: 'joinAsPlayer', v: Room, b: boolean): void
   (e: 'joinAsAudience', v: Room, b: boolean): void
   (e: 'leaveRoom', v: Room, b: boolean): void
-  (e: 'openDialog'): void
+  (e: 'openDialog', v: Room): void
   (e: 'startMatch', v: Room): void
   (e: 'wsConnectionsRefresh', v: Room): void
 }>()
@@ -71,7 +71,7 @@ const leaveRoom = async () => {
   emits('leaveRoom', props.room, isJoined.value)
 }
 const openDialog = async () => {
-  emits('openDialog')
+  emits('openDialog', props.room)
 }
 const startMatch = async () => {
   emits('startMatch', props.room)
@@ -132,13 +132,13 @@ watch(() => props.room, () => {
     width: 80%;
   }
 }
-  .players-list,.audiences-list{
-    display: flex;
-    justify-content: space-evenly;
-    flex-wrap: wrap
-  }
-  .players,.audiences {
-    padding: 0 2%;
-    color: limegreen;
-  }
+.players-list,.audiences-list{
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap
+}
+.players,.audiences {
+  padding: 0 2%;
+  color: limegreen;
+}
 </style>
