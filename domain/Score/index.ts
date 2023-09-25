@@ -12,11 +12,12 @@ export default class Score {
   constructor(
     cardId: string,
     roomId: string,
-    userId: string
+    userId: string,
+    id?: string
   ) {
-    this.id = new ScoreId
     this.cardId = new CardId(cardId)
     this.roomId = new RoomId(roomId)
     this.userId = new UserId(userId)
+    id ? this.id = new ScoreId(id) : this.id = new ScoreId
   }
 }
