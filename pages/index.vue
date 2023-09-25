@@ -94,6 +94,10 @@ const reconnectMatch = () => {
           <EDITROOM
           />
         </div>
+        <div v-else-if="pageName==='CARD'">
+          <EDITCARDLIST
+          />
+        </div>
         <div v-else="pageName==='DB'">
           <EDITDB
           />

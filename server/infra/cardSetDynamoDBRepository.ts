@@ -1,13 +1,13 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
-import Card from "~/domain/Card"
-import CardId from "~/domain/Card/CardId"
-import ICardRepository from '~/domain/interfaces/ICardRepository'
+import CardSet from "~/domain/CardSet"
+import CardSetId from "~/domain/CardSet/CardSetId"
+import ICardSetRepository from '~/domain/interfaces/ICardSetRepository'
 
-const tableName = 'cards'
+const tableName = 'cardSets'
 const runtimeConfig = useRuntimeConfig()
 
-export default class CardDynamoDBRepository implements ICardRepository {
+export default class CardSetDynamoDBRepository implements ICardSetRepository {
   private readonly _client: DynamoDBClient
   private readonly _docClient: DynamoDBDocumentClient
   private readonly _tableName: string
@@ -27,7 +27,7 @@ export default class CardDynamoDBRepository implements ICardRepository {
     this._tableName = tableName
   }
 
-  async getAll(): Promise<Array<Card>> {
+  async getAll(): Promise<Array<CardSet>> {
     const command = new ScanCommand({
       TableName: this._tableName
     })
@@ -35,70 +35,61 @@ export default class CardDynamoDBRepository implements ICardRepository {
     const response = await this._docClient.send(command)
     if (!response.Items) { return [] }
 
-    const cardList = response.Items.map((card) => {
-
-      const id = card.id?.['S'] || ''
-      const question = card.question?.['S'] || ''
-      const answer = card.answer?.['S'] || ''
-      const cardSetId = card.cardSetId?.['S'] || ''
-      return new Card(question, answer, cardSetId, id)
+    const cardSetList = response.Items.map((cardSet) => {
+      const id = cardSet.id?.['S'] || ''
+      const name = cardSet.name?.['S'] || ''
+      return new CardSet(name, id)
     })
 
-    return cardList
+    return cardSetList
   }
 
-  async findById(cardId: CardId): Promise<Card> {
+  async findById(cardSetId: CardSetId): Promise<CardSet> {
     const command = new GetCommand({
       TableName: this._tableName,
-      Key: { id: cardId.value }
+      Key: { id: cardSetId.value }
     })
     
     const response = await this._docClient.send(command)
     if (!response.Item) {
-      return new Card(
-        'notFoundById',
+      return new CardSet(
         'notFoundById',
         'notFoundById'
       )
     }
     
-    return new Card(
+    return new CardSet(
       response.Item.id,
-      response.Item.question,
-      response.Item.answer,
-      response.Item.cardSetId
+      response.Item.name
     )
   }
 
-  async create(card: Card): Promise<void> {
+  async create(cardSet: CardSet): Promise<void> {
     const command = new PutCommand({
       TableName: this._tableName,
       Item: {
-        id: card.id.value,
-        question: card.question,
-        answer: card.answer,
-        cardSetId: card.cardSetId.value
+        id: cardSet.id.value,
+        name: cardSet.name,
       }
     })
     await this._docClient.send(command)
   }
 
-  async delete(cardId: CardId): Promise<void> {
+  async delete(cardSetId: CardSetId): Promise<void> {
     const command = new DeleteCommand({
       TableName: this._tableName,
-      Key: { id: cardId.value }
+      Key: { id: cardSetId.value }
     })
     await this._docClient.send(command)
   }
 
-  async update(card: Card): Promise<void> {
+  async update(cardSet: CardSet): Promise<void> {
     const command = new UpdateCommand({
       TableName: this._tableName,
-      Key: { id: card.id.value },
-      UpdateExpression: "set question = :question, answer = :answer",
+      Key: { id: cardSet.id.value },
+      UpdateExpression: "set name = :name",
       ExpressionAttributeValues: {
-        ":question": card.question,
-        ":answer": card.answer,
+        ":name": cardSet.name
       },
     })
     await this._docClient.send(command)

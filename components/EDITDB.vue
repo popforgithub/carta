@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const createAllTables = async () => {
   await useFetch('/api/tables', { 
     method: 'post',

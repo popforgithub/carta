@@ -1,4 +1,4 @@
-import { AttributeValue, DynamoDBClient, ScanCommand, ScanCommandOutput } from "@aws-sdk/client-dynamodb"
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import Room from "~/domain/Room"
 import RoomId from "~/domain/Room/RoomId"

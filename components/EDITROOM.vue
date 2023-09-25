@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const headers = ['ルーム名', '削除']
 const { data: roomList, refresh } = await useLazyFetch('/api/rooms', { 
   method: 'get',
@@ -54,7 +54,7 @@ const validateNum = value => !!value || 'ルーム名は1文字以上で入力�
         <th v-for="header in headers">{{ header }}</th>
       </tr>
       <tr v-for="room in roomList">
-        <td>{{ room.name }}</td>
+        <td width="90%">{{ room.name }}</td>
         <td class="icon" @click="deleteRoom(room)">
           <v-icon> mdi-delete </v-icon>
         </td>
@@ -85,7 +85,7 @@ const validateNum = value => !!value || 'ルーム名は1文字以上で入力�
     border: 1px solid #ddd; /* セルの境界線を設定 */
   }
   .icon {
-    display: flex;
+    min-width: 50px;
     justify-content: center;
     align-items: center;
     cursor: pointer;
