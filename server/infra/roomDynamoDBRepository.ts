@@ -39,12 +39,13 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       const id = room.id?.['S']
       const name = room.name?.['S']
       const isOpen = room.isOpen['BOOL']
+      const cardSetId = room.cardSetId?.['S']
       const playerIds = room.playerIds?.['L']?.map(playerId => playerId['S'] || '') || []
       const audienceIds = room.audienceIds?.['L']?.map(audienceId => audienceId['S'] || '') || []
       
       const filteredPlayerIds = playerIds.filter(playerId => playerId !== '')
       const filteredAudienceIds = audienceIds.filter(audienceId => audienceId !== '')
-      return new Room(id, name, isOpen, filteredPlayerIds, filteredAudienceIds)
+      return new Room(id, name, isOpen, cardSetId, filteredPlayerIds, filteredAudienceIds)
     })
 
     return roomList
@@ -62,9 +63,10 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const id: string = response.Item.id
     const name: string = response.Item.name
     const isOpen: boolean = response.Item.isOpen
+    const cardSetId: string = response.Item.cardSetId
     const playerIds: Array<string> = response.Item.playerIds
     const audienceIds: Array<string> = response.Item.audienceIds
-    return new Room(id, name, isOpen, playerIds, audienceIds)
+    return new Room(id, name, isOpen, cardSetId, playerIds, audienceIds)
   }
 
   async create(room: Room): Promise<void> {
@@ -74,6 +76,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
         id: room.id.value,
         name: room.name,
         isOpen: true,
+        cardSetId: '',
         playerIds: [],
         audienceIds: []
       }
@@ -93,9 +96,10 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
-      UpdateExpression: "set isOpen = :isOpen, playerIds = :playerIds, audienceIds = :audienceIds",
+      UpdateExpression: "set isOpen = :isOpen, cardSetId = :cardSetId, playerIds = :playerIds, audienceIds = :audienceIds",
       ExpressionAttributeValues: {
         ":isOpen": room.isOpen,
+        ":cardSetId": room.cardSetId.value,
         ":playerIds": room.playerIds ? room.playerIds.map(playerId => playerId.value) : [],
         ":audienceIds": room.playerIds ? room.audienceIds.map(audienceId => audienceId.value) : []
       },

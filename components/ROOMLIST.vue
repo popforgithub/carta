@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
 type Room = {
-  id: string,
-  name: string,
-  isOpen: boolean,
+  id: string
+  name: string
+  isOpen: boolean
+  cardSetId: string
   playerIds: Array<string>
   audienceIds: Array<string>
 }
@@ -15,7 +16,7 @@ const props = defineProps<{
 const sessionId = props.sessionId
 
 const emits = defineEmits<{
-  (e: 'reconnectMatch'): void
+  (e: 'reconnectMatch', v: string): void
   (e: 'joinRoom', v: Room): void
   (e: 'leaveRoom', v: Room): void
   (e: 'startMatch', v: Room): void
@@ -28,13 +29,20 @@ const { data: roomList, refresh } = await useFetch('/api/rooms', {
   },
 })
 
+const { data: cardSetList } = await useFetch('/api/card_sets', { 
+  method: 'get',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+
 const reconnectMatch = () => {
   for (const room of JSON.parse(JSON.stringify(roomList.value))) {
     const roomMemberIds = []
     roomMemberIds.push(room.playerIds)
     roomMemberIds.push(room.audienceIds)
-    if (roomMemberIds.flat().includes(props.sessionId.value)) {
-      emits('reconnectMatch')
+    if (room.isOpen === false && roomMemberIds.flat().includes(props.sessionId.value)) {
+      emits('reconnectMatch', room.id)
     }
   }
 }
@@ -42,20 +50,21 @@ reconnectMatch()
 
 const updateRoom = async (room: Room) => {
   await useFetch('/api/rooms/:id',
-  { 
-    method: 'put',
-    params: {
-      id: room.id,
-      isOpen: room.isOpen,
-      playerIds: room.playerIds,
-      audienceIds: room.audienceIds
-    },
-    headers: {
-      'Content-Type': 'application/json'
+    { 
+      method: 'put',
+      params: {
+        id: room.id,
+        isOpen: room.isOpen,
+        cardSetId: room.cardSetId,
+        playerIds: room.playerIds,
+        audienceIds: room.audienceIds
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  }
   )
-refresh()
+  refresh()
 }
 
 const joinFlag: Ref<boolean> = ref(false)
@@ -101,34 +110,6 @@ const startMatch = async (room: Room) => {
   emits('startMatch', room)
 }
 
-const inputRoomId: Ref<string> = ref('')
-  const deleteRoom = async () => {
-    await useFetch('/api/rooms/:id',
-    { 
-      method: 'delete',
-      params: { id: inputRoomId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-    )
-    refresh()
-  }
-  
-  let roomDetail = ref()
-  const inputDetailedRoomId: Ref<string> = ref('')
-    const searchRoom = async () => {
-      roomDetail.value = await useFetch('/api/rooms/:id',
-      { 
-        method: 'get',
-        params: { id: inputDetailedRoomId },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-    }
-  )
-}
-
 watch(() => props.message, () => {
   refresh()
 })
@@ -142,14 +123,10 @@ watch(() => props.message, () => {
     @close="closeDialog"
   />
   <div>
-    <div class="card-container">
+    <div class="room-container">
       <room v-for="(room, i) in roomList" :key="i"
         :room="room"
-        :roomId="room.id"
-        :roomName ="room.name"
-        :roomIsOpen = "room.isOpen"
-        :roomPlayerIds = "room.playerIds"
-        :roomAudienceIds = "room.audienceIds"
+        :cardSetList="cardSetList"
         :sessionId = "sessionId"
         :joinFlag = "joinFlag"
         @joinCheck="joinCheck"
@@ -164,7 +141,7 @@ watch(() => props.message, () => {
 </template>
 
 <style scoped lang="scss">
-    .card-container {
+    .room-container {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;

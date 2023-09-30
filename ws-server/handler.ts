@@ -103,7 +103,7 @@ exports.websocketApp = ws(
       for (let i = 0; i < wsRooms.length; i++) {
         if (wsRooms[i].roomId === body) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ matchFlag: true, id: connection }, connection);
+            await postToConnection({ matchFlag: true, roomId: body, id: connection }, connection);
           }))
           return { statusCode: 200 };
         }

@@ -1,9 +1,10 @@
 import CardId from "~/domain/Card/CardId"
 import Card from "~/domain/Card"
+import CardSetId from "domain/CardSet/CardSetId"
 
 export default interface ICardRepository {
 
-  getAll(): Promise<Array<Card>>
+  getAll(cardSetId: CardSetId): Promise<Array<Card>>
 
   findById(id: CardId): Promise<Card>
 

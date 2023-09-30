@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
 type Room = {
-  id: string,
-  name: string,
-  isOpen: boolean,
+  id: string
+  name: string
+  isOpen: boolean
+  cardSetId: string
   playerIds: Array<string>
   audienceIds: Array<string>
 }

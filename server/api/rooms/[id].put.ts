@@ -2,11 +2,13 @@ import roomDynamoDBRepository from "~/server/infra/roomDynamoDBRepository"
 import RoomId from "~/domain/Room/RoomId"
 import { QueryObject } from "ufo"
 import UserId from "../../../domain/User/UserId"
+import CardSetId from "../../../domain/CardSet/CardSetId"
 
 type PutRequestBody = {
   id: RoomId
   name: string
   isOpen: boolean
+  cardSetId: CardSetId
   playerIds: Array<UserId>
   audienceIds: Array<UserId>
 }
@@ -16,6 +18,7 @@ export default defineEventHandler(async (event) => {
   // QueryObjectをstringに変換
   const paramsId: string = JSON.parse(JSON.stringify(params.id))
   const paramsIsOpen: boolean = JSON.parse(params.isOpen)
+  const paramsCardSetId: string = JSON.parse(JSON.stringify(params.cardSetId))
   // playerIdが一つだけわたってくるとき何故か配列じゃなくstringになっているので修正が必要
   const rawParamsPlayerIds: Array<string> = Array.isArray(params.playerIds) ? params.playerIds : [params.playerIds]
   const rawParamsAudienceIds: Array<string> = Array.isArray(params.audienceIds) ? params.audienceIds : [params.audienceIds]
@@ -28,6 +31,7 @@ export default defineEventHandler(async (event) => {
     id: room.id,
     name: room.name,
     isOpen: paramsIsOpen,
+    cardSetId: new CardSetId(paramsCardSetId),
     playerIds: paramsPlayerIds ? paramsPlayerIds.map(paramsPlayerId => new UserId(paramsPlayerId)) : [],
     audienceIds: paramsAudienceIds ? paramsAudienceIds.map(paramsAudienceId => new UserId(paramsAudienceId)) : []
   }

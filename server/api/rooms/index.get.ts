@@ -4,6 +4,7 @@ type RoomsResponse = {
   id: string
   name: string
   isOpen: boolean
+  cardSetId: string
   playerIds: Array<string>
   audienceIds: Array<string>
 }[]
@@ -18,6 +19,7 @@ export default defineEventHandler(async () => {
       id: room.id.value,
       name: room.name,
       isOpen: room.isOpen,
+      cardSetId: room.cardSetId.value,
       playerIds: playerIds,
       audienceIds: audienceIds
     }

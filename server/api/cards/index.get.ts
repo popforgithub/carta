@@ -1,4 +1,6 @@
 import CardDynamoDBRepository from "~/server/infra/cardDynamoDBRepository"
+import { QueryObject } from "ufo"
+import CardSetId from "../../../domain/CardSet/CardSetId"
 
 type CardsResponse = {
   id: string
@@ -7,9 +9,11 @@ type CardsResponse = {
   cardSetId: string
 }[]
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const params: QueryObject = getQuery(event)
+  const paramsCardSetId: string = JSON.parse(JSON.stringify(params.cardSetId))
   const repository = new CardDynamoDBRepository()
-  const cardList = await repository.getAll()
+  const cardList = await repository.getAll(new CardSetId(paramsCardSetId))
   const cardsResponse: CardsResponse = cardList.map((card) => {
     return {
       id: card.id.value,

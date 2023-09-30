@@ -1,8 +1,9 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import Card from "~/domain/Card"
 import CardId from "~/domain/Card/CardId"
 import ICardRepository from '~/domain/interfaces/ICardRepository'
+import CardSetId from "../../domain/CardSet/CardSetId"
 
 const tableName = 'cards'
 const runtimeConfig = useRuntimeConfig()
@@ -27,9 +28,14 @@ export default class CardDynamoDBRepository implements ICardRepository {
     this._tableName = tableName
   }
 
-  async getAll(): Promise<Array<Card>> {
-    const command = new ScanCommand({
-      TableName: this._tableName
+  async getAll(cardSetId: CardSetId): Promise<Array<Card>> {
+    const command = new QueryCommand({
+      TableName: this._tableName,
+      IndexName: 'cardSetIdIndex',
+      KeyConditionExpression: "cardSetId = :cardSetId",
+      ExpressionAttributeValues: {
+        ":cardSetId": { S: cardSetId.value }
+      },
     })
 
     const response = await this._docClient.send(command)

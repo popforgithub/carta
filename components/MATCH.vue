@@ -1,62 +1,50 @@
 <script setup lang="ts">
-const { data: scoreList, refresh } = await useFetch('/api/scores', { 
-  method: 'get',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-})
-
-const { data: scoreResponse } = await useFetch('/api/scores/:id', { 
-  method: 'get',
-  params: { id: 'aaa' },
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
-
-const inputScoreQuestion = ref('')
-const inputScoreAnswer = ref('')
-const createScore = async () => {
-  if (inputScoreQuestion.value) {
-    await useFetch('/api/scores',
-      { 
-        method: 'post',
-        body: { 
-          question: inputScoreQuestion,
-          answer: inputScoreAnswer,
-          scoreSetId: 'aaa'
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-    refresh()
-  }
+type Room = {
+  id: string
+  name: string
+  isOpen: boolean
+  cardSetId: string
+  playerIds: Array<string>
+  audienceIds: Array<string>
 }
-const deleteScore = async (scoreId) => {
-  await useFetch('/api/scores/:id',
-    { 
-      method: 'delete',
-      params: { id: scoreId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
+type CardSet = {
+  id: string
+  name: string
+}
+
+const props = defineProps<{
+  roomId: Ref<string>
+}>()
+
+const { data: room } = await useFetch('/api/rooms/:id',
+  { 
+    method: 'get',
+    params: { id: props.roomId},
+    headers: {
+      'Content-Type': 'application/json'
     }
-  )
-  refresh()
-}
+  }
+)
+const { data: cardList } = await useFetch('/api/cards',
+  { 
+    method: 'get',
+    params: { cardSetId: room.value.cardSetId},
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+)
+
 </script>
 
 <template>
   <div>
-    試合中
+    <div class="card-container">
+      <card v-for="(card, i) in cardList" :key="i"
+        :card="card"
+      />
+    </div>
   </div>
-  <p>{{ scoreList }}</p>
-  <h1>{{ scoreResponse }}</h1>
-  <v-text-field class="field" v-model="inputScoreQuestion" label="作成する質問を入力してください" />
-  <v-text-field class="field" v-model="inputScoreAnswer" label="作成する答えを入力してください" />
-  <v-btn class="btn" @click="createScore">createScore</v-btn>
-  <v-btn class="btn" @click="deleteScore('01HB3KESKN0DZJ6EPADT5W6493')">deleteScore</v-btn>
 </template>
 
 <style lang="scss" scoped>

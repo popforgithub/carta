@@ -24,6 +24,9 @@ const { data: cardList, refresh } = await useLazyFetch('/api/cards', {
   headers: {
     'Content-Type': 'application/json'
   },
+  params: {
+    cardSetId: props.cardSet.id
+  },
 })
 
 const inputQuestion = ref('')

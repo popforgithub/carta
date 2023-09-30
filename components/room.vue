@@ -1,20 +1,28 @@
 <script setup lang="ts">
 
 type Room = {
-  id: string,
-  name: string,
-  isOpen: boolean,
+  id: string
+  name: string
+  isOpen: boolean
+  cardSetId: string
   playerIds: Array<string>
   audienceIds: Array<string>
+}
+
+type CardSet = {
+  id: string
+  name: string
 }
 
 const props = defineProps<{
   sessionId: string
   room: Room
+  cardSetList: Array<CardSet>
   joinFlag: boolean
 }>()
 const sessionId = ref(props.sessionId)
 const joinFlag = ref(props.joinFlag)
+const selectedCardSet = ref()
 const emits = defineEmits<{
   (e: 'joinCheck', b: boolean): void
   (e: 'joinAsPlayer', v: Room, b: boolean): void
@@ -70,8 +78,9 @@ const leaveRoom = async () => {
   isJoined.value = false
   emits('leaveRoom', props.room, isJoined.value)
 }
-const openDialog = async () => {
-  emits('openDialog', props.room)
+const openDialog = async (room: Room) => {
+  room.cardSetId = selectedCardSet.value
+  emits('openDialog', room)
 }
 const startMatch = async () => {
   emits('startMatch', props.room)
@@ -88,6 +97,17 @@ watch(() => props.room, () => {
       <div class="text-center">
         <div class="room-name text-h6 mb-1">
           {{ props.room.name }}
+          <div class="v-select-container">
+            <v-select
+              v-model="selectedCardSet"
+              :items="props.cardSetList"
+              item-title="name"
+              item-value="id"
+              placeholder="カルタを選択"
+              base-color="white"
+              bg-color="white"
+            ></v-select>
+          </div>
           <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー受付中</h6>
           <h6 v-if="!props.room.isOpen" style="color: red;">試合中</h6>
         </div>
@@ -116,7 +136,7 @@ watch(() => props.room, () => {
       <v-btn v-if="isJoined" variant="outlined" class="border" @click="leaveRoom">
         退室
       </v-btn>
-      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="openDialog">
+      <v-btn v-if="isJoined" variant="outlined" class="border" :disabled="!isJoined && joinFlag" @click="openDialog(props.room)">
         試合開始
       </v-btn>
     </v-card-actions>
@@ -135,7 +155,7 @@ watch(() => props.room, () => {
 .players-list,.audiences-list{
   display: flex;
   justify-content: space-evenly;
-  flex-wrap: wrap
+  flex-wrap: wrap;
 }
 .players,.audiences {
   padding: 0 2%;

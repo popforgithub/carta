@@ -22,8 +22,6 @@ const emits = defineEmits<{
 
 const take = () => {
   const cardId = props.card.id
-  const roomId = props.roomId
-  const userId = props.sessionId
 }
 </script>
 

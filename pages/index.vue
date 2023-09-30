@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import ReconnectingWebSocket from 'reconnecting-websocket'
-type MatchRoom = {
-  id: string,
-  memberIds: string[]
-}
+
 const matchFlag = ref(false)
+const roomId = ref('')
 
 // websocket関連----------------------------------------------------------
-const matchRoom: Ref<MatchRoom> = ref({id: '', memberIds: []})
 const message = ref({})
 const wsConnections = ref(0)
 // WebSocketのクライアントの生成
@@ -38,8 +35,9 @@ const startMatch = (room) => {
 ws.onmessage = async (event) => {
   if (JSON.parse(event.data).echo) { message.value = JSON.parse(event.data).echo }
   if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
-  if (JSON.parse(event.data).matchRoom) { matchRoom.value = JSON.parse(event.data).matchRoom }
+  if (JSON.parse(event.data).roomId) { roomId.value = JSON.parse(event.data).roomId }
   if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
+
 }
 
 const closeConnection = () => {
@@ -58,7 +56,8 @@ const receiveSessionUser = async (user) => {
   sessionUser.value = user
   isRecognized.value = true
 }
-const reconnectMatch = () => {
+const reconnectMatch = (id: string) => {
+  roomId.value = id
   matchFlag.value = true
 }
 </script>
@@ -77,7 +76,9 @@ const reconnectMatch = () => {
         @pageSelect="pageSelect"
       />
       <div v-if="matchFlag && pageName==='PLAY'">
-        <MATCH />
+        <MATCH 
+          :roomId="ref(roomId)"
+        />
       </div>
       <div v-else>
         <div v-if="pageName==='PLAY'">
