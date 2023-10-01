@@ -40,12 +40,13 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       const name = room.name?.['S']
       const isOpen = room.isOpen['BOOL']
       const cardSetId = room.cardSetId?.['S']
+      const cardSetName = room.cardSetName?.['S']
       const playerIds = room.playerIds?.['L']?.map(playerId => playerId['S'] || '') || []
       const audienceIds = room.audienceIds?.['L']?.map(audienceId => audienceId['S'] || '') || []
       
       const filteredPlayerIds = playerIds.filter(playerId => playerId !== '')
       const filteredAudienceIds = audienceIds.filter(audienceId => audienceId !== '')
-      return new Room(id, name, isOpen, cardSetId, filteredPlayerIds, filteredAudienceIds)
+      return new Room(id, name, isOpen, cardSetId, cardSetName, filteredPlayerIds, filteredAudienceIds)
     })
 
     return roomList
@@ -64,9 +65,10 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const name: string = response.Item.name
     const isOpen: boolean = response.Item.isOpen
     const cardSetId: string = response.Item.cardSetId
+    const cardSetName: string = response.Item.cardSetName
     const playerIds: Array<string> = response.Item.playerIds
     const audienceIds: Array<string> = response.Item.audienceIds
-    return new Room(id, name, isOpen, cardSetId, playerIds, audienceIds)
+    return new Room(id, name, isOpen, cardSetId, cardSetName, playerIds, audienceIds)
   }
 
   async create(room: Room): Promise<void> {
@@ -76,7 +78,8 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
         id: room.id.value,
         name: room.name,
         isOpen: true,
-        cardSetId: '',
+        cardSetId: room.cardSetId.value,
+        cardSetName: room.cardSetName,
         playerIds: [],
         audienceIds: []
       }
@@ -96,10 +99,12 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
-      UpdateExpression: "set isOpen = :isOpen, cardSetId = :cardSetId, playerIds = :playerIds, audienceIds = :audienceIds",
+      UpdateExpression: "set name = :name, isOpen = :isOpen, cardSetId = :cardSetId, cardSetName = :cardSetName, playerIds = :playerIds, audienceIds = :audienceIds",
       ExpressionAttributeValues: {
+        ":name": room.name,
         ":isOpen": room.isOpen,
         ":cardSetId": room.cardSetId.value,
+        ":cardSetName": room.cardSetName,
         ":playerIds": room.playerIds ? room.playerIds.map(playerId => playerId.value) : [],
         ":audienceIds": room.playerIds ? room.audienceIds.map(audienceId => audienceId.value) : []
       },

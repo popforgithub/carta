@@ -40,7 +40,7 @@ const { data: cardList } = await useFetch('/api/cards',
 <template>
   <div>
     <div class="card-container">
-      <card v-for="(card, i) in cardList" :key="i"
+      <card class="card-item" v-for="(card, i) in cardList" :key="i"
         :card="card"
       />
     </div>
@@ -48,4 +48,15 @@ const { data: cardList } = await useFetch('/api/cards',
 </template>
 
 <style lang="scss" scoped>
+.card-container {
+	display: flex;
+	flex-wrap: wrap;
+	margin: calc(-30px / 2);
+	padding: 30px;
+}
+
+.card-item {
+	width: calc(100% / 6 - 30px);
+	margin: calc(30px / 2);
+}
 </style>

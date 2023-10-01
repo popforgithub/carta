@@ -59,8 +59,8 @@ export default class CardSetDynamoDBRepository implements ICardSetRepository {
     }
     
     return new CardSet(
-      response.Item.id,
-      response.Item.name
+      response.Item.name,
+      response.Item.id
     )
   }
 

@@ -28,10 +28,8 @@ const take = () => {
 <template>
   <v-card
     class="mx-auto"
-    width="120"
-    height="160"
     @click="take"
-    style="text-align: center; display: flex; align-items: center; justify-content: center;"
+    style="text-align: center; display: flex; align-items: center;"
   >
     <v-card-text>
       <strong style="font-size: 24px">{{ props.card.answer }}</strong>

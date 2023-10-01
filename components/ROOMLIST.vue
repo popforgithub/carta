@@ -5,6 +5,7 @@ type Room = {
   name: string
   isOpen: boolean
   cardSetId: string
+  cardSetName: string
   playerIds: Array<string>
   audienceIds: Array<string>
 }
@@ -23,13 +24,6 @@ const emits = defineEmits<{
 }>()
 
 const { data: roomList, refresh } = await useFetch('/api/rooms', { 
-  method: 'get',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-})
-
-const { data: cardSetList } = await useFetch('/api/card_sets', { 
   method: 'get',
   headers: {
     'Content-Type': 'application/json'
@@ -56,6 +50,7 @@ const updateRoom = async (room: Room) => {
         id: room.id,
         isOpen: room.isOpen,
         cardSetId: room.cardSetId,
+        cardSetName: room.cardSetName,
         playerIds: room.playerIds,
         audienceIds: room.audienceIds
       },
@@ -126,7 +121,6 @@ watch(() => props.message, () => {
     <div class="room-container">
       <room v-for="(room, i) in roomList" :key="i"
         :room="room"
-        :cardSetList="cardSetList"
         :sessionId = "sessionId"
         :joinFlag = "joinFlag"
         @joinCheck="joinCheck"

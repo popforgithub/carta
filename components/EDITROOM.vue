@@ -1,20 +1,42 @@
 <script setup lang="ts">
-const headers = ['ルーム名', '削除']
-const { data: roomList, refresh } = await useLazyFetch('/api/rooms', { 
+const headers = ['ルーム名', 'カルタ', '削除']
+const { data: roomList, refresh } = await useFetch('/api/rooms', { 
   method: 'get',
   headers: {
     'Content-Type': 'application/json'
   },
 })
+const { data: cardSetList } = await useFetch('/api/card_sets', { 
+  method: 'get',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+const findCardSetNameByCardSetId = async (cardSetId) => {
+  const { data: response } = await useFetch('/api/card_sets/:id',
+    { 
+      method: 'get',
+      params: { id: cardSetId},
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  return response.value.name
+}
 
 const inputRoomName = ref('')
+const inputCardSetId = ref('')
 const createRoom = async () => {
   if (inputRoomName.value) {
+    const cardSetName = await findCardSetNameByCardSetId(inputCardSetId.value)
     await useFetch('/api/rooms',
     { 
       method: 'post',
       body: { 
-        name: inputRoomName.value
+        name: inputRoomName.value,
+        cardSetId: inputCardSetId.value,
+        cardSetName: cardSetName
       },
       headers: {
         'Content-Type': 'application/json'
@@ -54,13 +76,21 @@ const validateNum = value => !!value || 'ルーム名は1文字以上で入力�
         <th v-for="header in headers">{{ header }}</th>
       </tr>
       <tr v-for="room in roomList">
-        <td width="90%">{{ room.name }}</td>
+        <td width="45%">{{ room.name }}</td>
+        <td width="45%">{{ room.cardSetName }}</td>
         <td class="icon" @click="deleteRoom(room)">
           <v-icon> mdi-delete </v-icon>
         </td>
       </tr>
     </table>
     <v-text-field class="field" v-model="inputRoomName" label="作成するルーム名を入力してください" :rules="[validateNum]" />
+    <v-select
+      v-model="inputCardSetId"
+      :items="cardSetList"
+      item-title="name"
+      item-value="id"
+      placeholder="プレイするカルタを選択してください"
+    ></v-select>
     <v-btn class="btn" @click="createRoom">createRoom</v-btn>
   </div>
 </template>

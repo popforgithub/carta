@@ -5,24 +5,18 @@ type Room = {
   name: string
   isOpen: boolean
   cardSetId: string
+  cardSetName: string
   playerIds: Array<string>
   audienceIds: Array<string>
-}
-
-type CardSet = {
-  id: string
-  name: string
 }
 
 const props = defineProps<{
   sessionId: string
   room: Room
-  cardSetList: Array<CardSet>
   joinFlag: boolean
 }>()
 const sessionId = ref(props.sessionId)
 const joinFlag = ref(props.joinFlag)
-const selectedCardSet = ref()
 const emits = defineEmits<{
   (e: 'joinCheck', b: boolean): void
   (e: 'joinAsPlayer', v: Room, b: boolean): void
@@ -79,16 +73,13 @@ const leaveRoom = async () => {
   emits('leaveRoom', props.room, isJoined.value)
 }
 const openDialog = async (room: Room) => {
-  room.cardSetId = selectedCardSet.value
   emits('openDialog', room)
-}
-const startMatch = async () => {
-  emits('startMatch', props.room)
 }
 
 watch(() => props.room, () => {
   refreshUserNames()
 })
+
 </script>
 
 <template>
@@ -97,17 +88,6 @@ watch(() => props.room, () => {
       <div class="text-center">
         <div class="room-name text-h6 mb-1">
           {{ props.room.name }}
-          <div class="v-select-container">
-            <v-select
-              v-model="selectedCardSet"
-              :items="props.cardSetList"
-              item-title="name"
-              item-value="id"
-              placeholder="カルタを選択"
-              base-color="white"
-              bg-color="white"
-            ></v-select>
-          </div>
           <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー受付中</h6>
           <h6 v-if="!props.room.isOpen" style="color: red;">試合中</h6>
         </div>
