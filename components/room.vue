@@ -86,11 +86,10 @@ watch(() => props.room, () => {
   <v-card class="mx-auto" variant="outlined" :disabled="!props.room.isOpen">
     <v-card-item>
       <div class="text-center">
-        <div class="room-name text-h6 mb-1">
-          {{ props.room.name }}
-          <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー受付中</h6>
-          <h6 v-if="!props.room.isOpen" style="color: red;">試合中</h6>
-        </div>
+        <p class="text-h5 mb-1">{{ props.room.name }}</p>
+        <p class="text-h6 mb-1">{{ props.room.cardSetName }}</p>
+        <h6 v-if="props.room.isOpen" style="color: limegreen;">エントリー受付中</h6>
+        <h6 v-if="!props.room.isOpen" style="color: red;">試合中</h6>
         <h6>参加者</h6>
         <v-list class="players-list">
           <div class="players" v-for="(playerName, i) in playerNames" :key="i">

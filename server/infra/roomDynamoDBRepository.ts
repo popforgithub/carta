@@ -99,7 +99,10 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
-      UpdateExpression: "set name = :name, isOpen = :isOpen, cardSetId = :cardSetId, cardSetName = :cardSetName, playerIds = :playerIds, audienceIds = :audienceIds",
+      UpdateExpression: "set #nm = :name, isOpen = :isOpen, cardSetId = :cardSetId, cardSetName = :cardSetName, playerIds = :playerIds, audienceIds = :audienceIds",
+      ExpressionAttributeNames: {
+        '#nm': 'name'
+      },
       ExpressionAttributeValues: {
         ":name": room.name,
         ":isOpen": room.isOpen,

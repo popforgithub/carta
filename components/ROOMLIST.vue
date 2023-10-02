@@ -48,6 +48,7 @@ const updateRoom = async (room: Room) => {
       method: 'put',
       params: {
         id: room.id,
+        name: room.name,
         isOpen: room.isOpen,
         cardSetId: room.cardSetId,
         cardSetName: room.cardSetName,

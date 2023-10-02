@@ -66,6 +66,7 @@ const deleteRoom = async (room) => {
 }
 
 const validateNum = value => !!value || 'ルーム名は1文字以上で入力してください'
+const validateExistence = value => !!value || 'カルタを選択してください'
 </script>
 
 <template>
@@ -83,13 +84,15 @@ const validateNum = value => !!value || 'ルーム名は1文字以上で入力�
         </td>
       </tr>
     </table>
-    <v-text-field class="field" v-model="inputRoomName" label="作成するルーム名を入力してください" :rules="[validateNum]" />
+    <v-text-field class="field" v-model="inputRoomName" label="作成するルーム名を入力してください" style="width: 30%;" :rules="[validateNum]" />
     <v-select
       v-model="inputCardSetId"
       :items="cardSetList"
       item-title="name"
       item-value="id"
       placeholder="プレイするカルタを選択してください"
+      style="width: 30%;"
+      :rules="[validateExistence]"
     ></v-select>
     <v-btn class="btn" @click="createRoom">createRoom</v-btn>
   </div>

@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
     playerIds: paramsPlayerIds ? paramsPlayerIds.map(paramsPlayerId => new UserId(paramsPlayerId)) : [],
     audienceIds: paramsAudienceIds ? paramsAudienceIds.map(paramsAudienceId => new UserId(paramsAudienceId)) : []
   }
+  console.log('aaaaaaaaaa', room)
   await repository.update(room)
 
   event.node.res.statusCode = 200
