@@ -9,7 +9,6 @@ type RoomResponse = {
   cardSetName: string
   playerIds: Array<string>
   audienceIds: Array<string>
-  shuffledCardIds: Array<string>
   matchId: string
 }
 
@@ -28,7 +27,6 @@ export default defineEventHandler(async (event) => {
     cardSetName: room.cardSetName,
     playerIds: room.playerIds.map(playerId => playerId.value),
     audienceIds: room.audienceIds.map(audienceId => audienceId.value),
-    shuffledCardIds: room.shuffledCardIds.map(shuffledCardId => shuffledCardId.value),
     matchId: room.matchId
   }
   return roomResponse

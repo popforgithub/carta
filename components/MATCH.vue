@@ -44,7 +44,7 @@ const { data: cardList } = await useFetch('/api/cards',
   }
 )
 
-const { data: scoreList, refresh } = await useFetch('/api/scores',
+const { data: scoreList, refresh: refreshScoreList } = await useFetch('/api/scores',
   { 
     method: 'get',
     params: { matchId: room.value.matchId},
@@ -70,7 +70,7 @@ const takeCard = async (cardId: string) => {
       'Content-Type': 'application/json'
     }
   })
-  refresh()
+  refreshScoreList()
 }
 
 const findUserById = async (session: string) => {
