@@ -8,6 +8,7 @@ type Room = {
   cardSetName: string
   playerIds: Array<string>
   audienceIds: Array<string>
+  matchId: string
 }
 
 const props = defineProps<{
@@ -53,7 +54,8 @@ const updateRoom = async (room: Room) => {
         cardSetId: room.cardSetId,
         cardSetName: room.cardSetName,
         playerIds: room.playerIds,
-        audienceIds: room.audienceIds
+        audienceIds: room.audienceIds,
+        matchId: room.matchId
       },
       headers: {
         'Content-Type': 'application/json'

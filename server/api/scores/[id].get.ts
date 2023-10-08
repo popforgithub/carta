@@ -6,6 +6,8 @@ type ScoreResponse = {
   cardId: string
   roomId: string
   userId: string
+  userName: string
+  matchId: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -19,7 +21,9 @@ export default defineEventHandler(async (event) => {
     id: score.id.value,
     cardId: score.cardId.value,
     roomId: score.roomId.value,
-    userId: score.userId.value
+    userId: score.userId.value,
+    userName: score.userName,
+    matchId: score.matchId
   }
   return scoreResponse
 })

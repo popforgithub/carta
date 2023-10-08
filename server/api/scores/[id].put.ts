@@ -10,6 +10,8 @@ type PutRequestBody = {
   cardId: CardId
   roomId: RoomId
   userId: UserId
+  userName: string
+  matchId: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -19,6 +21,8 @@ export default defineEventHandler(async (event) => {
   const paramsCardId: string = JSON.parse(JSON.stringify(params.cardId))
   const paramsRoomId: string = JSON.parse(JSON.stringify(params.roomId))
   const paramsUserId: string = JSON.parse(JSON.stringify(params.userId))
+  const paramsUserName: string = JSON.parse(JSON.stringify(params.userName))
+  const paramsMatchId: string = JSON.parse(JSON.stringify(params.matchId))
   const scoreId = new ScoreId(paramsId)
   const cardId = new CardId(paramsCardId)
   const roomId = new RoomId(paramsRoomId)
@@ -28,7 +32,9 @@ export default defineEventHandler(async (event) => {
     id: scoreId,
     cardId,
     roomId,
-    userId
+    userId,
+    userName: paramsUserName,
+    matchId: paramsMatchId
   }
   await repository.update(putRequestBody)
 

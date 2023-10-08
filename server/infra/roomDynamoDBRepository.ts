@@ -43,10 +43,12 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
       const cardSetName = room.cardSetName?.['S']
       const playerIds = room.playerIds?.['L']?.map(playerId => playerId['S'] || '') || []
       const audienceIds = room.audienceIds?.['L']?.map(audienceId => audienceId['S'] || '') || []
+      const shuffledCardIds = room.shuffledCardIds?.['L']?.map(shuffledcardId => shuffledcardId['S'] || '') || []
+      const matchId = room.matchId?.['S']
       
       const filteredPlayerIds = playerIds.filter(playerId => playerId !== '')
       const filteredAudienceIds = audienceIds.filter(audienceId => audienceId !== '')
-      return new Room(id, name, isOpen, cardSetId, cardSetName, filteredPlayerIds, filteredAudienceIds)
+      return new Room(id, name, isOpen, cardSetId, cardSetName, filteredPlayerIds, filteredAudienceIds, shuffledCardIds, matchId)
     })
 
     return roomList
@@ -68,7 +70,9 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const cardSetName: string = response.Item.cardSetName
     const playerIds: Array<string> = response.Item.playerIds
     const audienceIds: Array<string> = response.Item.audienceIds
-    return new Room(id, name, isOpen, cardSetId, cardSetName, playerIds, audienceIds)
+    const shuffledCardIds: Array<string> = response.Item.shuffledCardIds
+    const matchId : string = response.Item.matchId
+    return new Room(id, name, isOpen, cardSetId, cardSetName, playerIds, audienceIds, shuffledCardIds, matchId)
   }
 
   async create(room: Room): Promise<void> {
@@ -81,7 +85,9 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
         cardSetId: room.cardSetId.value,
         cardSetName: room.cardSetName,
         playerIds: [],
-        audienceIds: []
+        audienceIds: [],
+        shuffledCardIds: room.shuffledCardIds.map(shuffledCardId => shuffledCardId.value),
+        matchId: room.matchId
       }
     })
     await this._docClient.send(command)
@@ -99,7 +105,7 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: room.id.value },
-      UpdateExpression: "set #nm = :name, isOpen = :isOpen, cardSetId = :cardSetId, cardSetName = :cardSetName, playerIds = :playerIds, audienceIds = :audienceIds",
+      UpdateExpression: "set #nm = :name, isOpen = :isOpen, cardSetId = :cardSetId, cardSetName = :cardSetName, playerIds = :playerIds, audienceIds = :audienceIds, shuffledCardIds = :shuffledCardIds, matchId = :matchId",
       ExpressionAttributeNames: {
         '#nm': 'name'
       },
@@ -109,7 +115,9 @@ export default class RoomDynamoDBRepository implements IRoomRepository {
         ":cardSetId": room.cardSetId.value,
         ":cardSetName": room.cardSetName,
         ":playerIds": room.playerIds ? room.playerIds.map(playerId => playerId.value) : [],
-        ":audienceIds": room.playerIds ? room.audienceIds.map(audienceId => audienceId.value) : []
+        ":audienceIds": room.playerIds ? room.audienceIds.map(audienceId => audienceId.value) : [],
+        ":shuffledCardIds": room.shuffledCardIds ? room.shuffledCardIds.map(shuffledCardId => shuffledCardId.value) : [],
+        ":matchId": room.matchId
       },
     })
     await this._docClient.send(command)

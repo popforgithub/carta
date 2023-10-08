@@ -5,11 +5,13 @@ type PostRequestBody = {
   cardId: string
   roomId: string
   userId: string
+  userName: string
+  matchId: string
 }
 
 export default defineEventHandler(async (event) => {
-  const { cardId, roomId, userId }: PostRequestBody = (await readBody(event))
-  const score = new Score(cardId, roomId, userId)
+  const { cardId, roomId, userId, userName, matchId }: PostRequestBody = (await readBody(event))
+  const score = new Score(cardId, roomId, userId, userName, matchId)
   const repository = new scoreDynamoDBRepository()
   await repository.create(score)
 

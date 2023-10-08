@@ -13,7 +13,6 @@ export default defineEventHandler(async (event) => {
   const cardSetId = new CardSetId(paramsId)
   const repository = new cardSetDynamoDBRepository()
   const cardSet = await repository.findById(cardSetId)
-  console.log('bbbbb', cardSet)
   const cardSetResponse: CardSetResponse = {
     id: cardSet.id.value,
     name: cardSet.name

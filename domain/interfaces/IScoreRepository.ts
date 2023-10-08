@@ -1,10 +1,9 @@
 import ScoreId from "~/domain/Score/ScoreId"
 import Score from "~/domain/Score"
-import RoomId from "~/domain/Room/RoomId"
 
 export default interface IScoreRepository {
 
-  getAll(): Promise<Array<Score>>
+  getAll(matchId: string): Promise<Array<Score>>
 
   findById(id: ScoreId): Promise<Score>
 

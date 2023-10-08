@@ -4,6 +4,7 @@ import { QueryObject } from "ufo"
 import UserId from "../../../domain/User/UserId"
 import CardSetId from "../../../domain/CardSet/CardSetId"
 import Room from "../../../domain/Room"
+import CardId from "../../../domain/Card/CardId"
 
 export default defineEventHandler(async (event) => {
   const params: QueryObject = getQuery(event)
@@ -16,8 +17,11 @@ export default defineEventHandler(async (event) => {
   // playerIdが一つだけわたってくるとき何故か配列じゃなくstringになっているので修正が必要
   const rawParamsPlayerIds: Array<string> = Array.isArray(params.playerIds) ? params.playerIds : [params.playerIds]
   const rawParamsAudienceIds: Array<string> = Array.isArray(params.audienceIds) ? params.audienceIds : [params.audienceIds]
+  const rawParamsShuffledCardIds: Array<string> = Array.isArray(params.shuffledCardIds) ? params.shuffledCardIds : [params.shuffledCardIds]
   const paramsPlayerIds: Array<string> = JSON.parse(JSON.stringify(rawParamsPlayerIds))
   const paramsAudienceIds: Array<string> = JSON.parse(JSON.stringify(rawParamsAudienceIds))
+  const paramsShuffledIds: Array<string> = JSON.parse(JSON.stringify(rawParamsShuffledCardIds))
+  const paramsMatchId: string = JSON.parse(JSON.stringify(params.matchId))
 
   const repository = new roomDynamoDBRepository()
   const room: Room = {
@@ -27,9 +31,10 @@ export default defineEventHandler(async (event) => {
     cardSetId: new CardSetId(paramsCardSetId),
     cardSetName: paramsCardSetName,
     playerIds: paramsPlayerIds ? paramsPlayerIds.map(paramsPlayerId => new UserId(paramsPlayerId)) : [],
-    audienceIds: paramsAudienceIds ? paramsAudienceIds.map(paramsAudienceId => new UserId(paramsAudienceId)) : []
+    audienceIds: paramsAudienceIds ? paramsAudienceIds.map(paramsAudienceId => new UserId(paramsAudienceId)) : [],
+    shuffledCardIds: paramsShuffledIds ? paramsShuffledIds.map(paramsShuffledId => new CardId(paramsShuffledId)) : [],
+    matchId: paramsMatchId
   }
-  console.log('aaaaaaaaaa', room)
   await repository.update(room)
 
   event.node.res.statusCode = 200

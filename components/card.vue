@@ -6,22 +6,15 @@ type Card = {
   cardSetId: string
 }
 
-type Score = {
-  id: string,
-  cardId: string,
-  roomId: string,
-  userId: string
-}
-
 const props = defineProps<{
   card: Card
 }>()
 const emits = defineEmits<{
-  (e: 'emitScore', v: Score): void
+  (e: 'takeCard', v: string): void
 }>()
 
 const take = () => {
-  const cardId = props.card.id
+  emits('takeCard', props.card.id)
 }
 </script>
 

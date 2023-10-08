@@ -32,8 +32,7 @@ const { data: cardList, refresh } = await useLazyFetch('/api/cards', {
 const inputQuestion = ref('')
 const inputAnswer = ref('')
 const createCard = async () => {
-  await useFetch('/api/cards',
-  { 
+  await useFetch('/api/cards', { 
     method: 'post',
     body: { 
       question: inputQuestion.value,

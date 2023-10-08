@@ -30,13 +30,24 @@ const inputCardSetId = ref('')
 const createRoom = async () => {
   if (inputRoomName.value) {
     const cardSetName = await findCardSetNameByCardSetId(inputCardSetId.value)
+    const { data: cardList } = await useLazyFetch('/api/cards', { 
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      params: {
+        cardSetId: inputCardSetId.value
+      },
+    })
+    const shuffledCardIds = cardList.value.map(card => card.id)
     await useFetch('/api/rooms',
     { 
       method: 'post',
       body: { 
         name: inputRoomName.value,
         cardSetId: inputCardSetId.value,
-        cardSetName: cardSetName
+        cardSetName: cardSetName,
+        shuffledCardIds: shuffledCardIds
       },
       headers: {
         'Content-Type': 'application/json'
