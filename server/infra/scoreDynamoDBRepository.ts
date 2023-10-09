@@ -43,11 +43,16 @@ export default class ScoreDynamoDBRepository implements IScoreRepository {
     const scoreList = response.Items.map((score) => {
       const id = score.id?.['S'] || ''
       const cardId = score.cardId?.['S'] || ''
+      const question = score.question?.['S'] || ''
+      const answer = score.answer?.['S'] || ''
+      const cardSetId = score.cardSetId?.['S'] || ''
+      const cardSetName = score.cardSetName?.['S'] || ''
+      const copiedAnswer = score.copiedAnswer?.['S'] || ''
       const roomId = score.roomId?.['S'] || ''
       const userId = score.userId?.['S'] || ''
       const userName = score.userName?.['S'] || ''
       const matchId = score.matchId?.['S'] || ''
-      return new Score(cardId, roomId, userId, userName, matchId, id)
+      return new Score(cardId, question, answer, cardSetId, cardSetName, copiedAnswer, roomId, userId, userName, matchId, id)
     })
 
     return scoreList
@@ -64,11 +69,16 @@ export default class ScoreDynamoDBRepository implements IScoreRepository {
 
     const id: string = response.Item.id
     const cardId: string = response.Item.cardId
+    const question: string = response.Item.question
+    const answer: string = response.Item.answer
+    const cardSetId: string = response.Item.cardSetId
+    const cardSetName: string = response.Item.cardSetName
+    const copiedAnswer: string = response.Item.copiedAnswer
     const roomId: string = response.Item.roomId
     const userId: string = response.Item.userId
     const userName: string = response.Item.userName
     const matchId: string = response.Item.matchId
-    return new Score(id, cardId, roomId, userId, userName, matchId)
+    return new Score(id, cardId, question, answer, cardSetId, cardSetName, copiedAnswer, roomId, userId, userName, matchId)
   }
 
   async create(score: Score): Promise<void> {
@@ -77,6 +87,11 @@ export default class ScoreDynamoDBRepository implements IScoreRepository {
       Item: {
         id: score.id.value,
         cardId: score.cardId.value,
+        question: score.question,
+        answer: score.answer,
+        cardSetId: score.cardSetId.value,
+        cardSetName: score.cardSetName,
+        copiedAnswer: score.copiedAnswer,
         roomId: score.roomId.value,
         userId: score.userId.value,
         userName: score.userName,
@@ -98,9 +113,14 @@ export default class ScoreDynamoDBRepository implements IScoreRepository {
     const command = new UpdateCommand({
       TableName: this._tableName,
       Key: { id: score.id.value },
-      UpdateExpression: "set cardId = :cardId, roomId = :roomId, userId = :userId, userName = :userName, matchId = :matchId",
+      UpdateExpression: "set cardId = :cardId, question = :question, answer = :answer, cardSetId = :cardSetId, cardSetName = :cardSetName, copiedAnswer = :copiedAnswer, roomId = :roomId, userId = :userId, userName = :userName, matchId = :matchId",
       ExpressionAttributeValues: {
         ":cardId": score.cardId.value,
+        ":question": score.question,
+        ":answer": score.answer,
+        ":cardSetId": score.cardSetId.value,
+        ":cardSetName": score.cardSetName,
+        ":copiedAnswer": score.copiedAnswer,
         ":roomId": score.roomId.value,
         ":userId": score.userId.value,
         ":userName": score.userName,

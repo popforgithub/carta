@@ -1,31 +1,38 @@
 <script setup lang="ts">
-type Card = {
-  id: string,
-  question: string,
-  answer: string,
+type Score = {
+  id: string
+  cardId: string
+  question: string
+  answer: string
   cardSetId: string
+  cardSetName: string
+  copiedAnswer: string
+  roomId: string
+  userId: string
+  userName: string
+  matchId: string
 }
 
 const props = defineProps<{
-  card: Card
+  score: Score
 }>()
 const emits = defineEmits<{
-  (e: 'takeCard', v: string): void
+  (e: 'takeCard', v: Score): void
 }>()
 
 const take = () => {
-  emits('takeCard', props.card.id)
+  emits('takeCard', props.score)
 }
 </script>
 
 <template>
-  <v-card
+  <v-card :disabled="!props.score.copiedAnswer"
     class="mx-auto"
     @click="take"
     style="text-align: center; display: flex; align-items: center;"
   >
     <v-card-text>
-      <strong style="font-size: 24px">{{ props.card.answer }}</strong>
+      <strong style="font-size: 24px">{{ props.score.copiedAnswer }}</strong>
     </v-card-text>
   </v-card>
 </template>

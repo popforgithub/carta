@@ -12,32 +12,33 @@ type CardSet = {
   id: string
   name: string
 }
-type ScoreProps = {
-  cardId: string,
-  roomId: string,
-  userId: string,
-  userName: string,
+type Score = {
+  id: string
+  cardId: string
+  question: string
+  answer: string
+  cardSetId: string
+  cardSetName: string
+  copiedAnswer: string
+  roomId: string
+  userId: string
+  userName: string
   matchId: string
 }
 
 const props = defineProps<{
   roomId: Ref<string>
-  }>()
+  scoreId: Ref<string>
+}>()
+const emits = defineEmits<{
+  (e: 'takeCard', v: Score): void
+}>()
   
 const session = useCookie('session')
 const { data: room } = await useFetch('/api/rooms/:id',
   { 
     method: 'get',
     params: { id: props.roomId.value},
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-)
-const { data: cardList } = await useFetch('/api/cards',
-  { 
-    method: 'get',
-    params: { cardSetId: room.value.cardSetId},
     headers: {
       'Content-Type': 'application/json'
     }
@@ -53,24 +54,34 @@ const { data: scoreList, refresh: refreshScoreList } = await useFetch('/api/scor
     }
   }
 )
-
 const scoredUser = ref({id: '', name: ''})
-const takeCard = async (cardId: string) => {
+const updateScore = async (score: Score) => {
   scoredUser.value = await findUserById(session.value)
-  await useFetch('/api/scores', {
-    method: 'post',
-    body: { 
-      cardId: cardId,
-      roomId: room.value.id,
-      userId: session.value,
-      userName: scoredUser.value.name,
-      matchId: room.value.matchId
-    },
-    headers: {
-      'Content-Type': 'application/json'
+  await useFetch('/api/scores/:id',
+    { 
+      method: 'put',
+      params: { 
+        id: score.id,
+        cardId: score.cardId,
+        question: score.question,
+        answer: score.answer,
+        cardSetId: score.cardSetId,
+        cardSetName: score.cardSetName,
+        copiedAnswer: '',
+        roomId: score.roomId,
+        userId: scoredUser.value.id,
+        userName: scoredUser.value.name,
+        matchId: score.matchId
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  })
-  refreshScoreList()
+  )
+}
+const takeCard = async (score: Score) => {
+  await updateScore(score)
+  emits("takeCard", score)
 }
 
 const findUserById = async (session: string) => {
@@ -85,17 +96,20 @@ const findUserById = async (session: string) => {
   )
   return userResponse.value
 }
+watch(() => props.scoreId.value, () => {
+  console.log('1111111111111111111111111111', props.scoreId.value)
+  refreshScoreList()
+})
 </script>
 
 <template>
   <div>
     <div class="card-container">
-      <card class="card-item" v-for="(card, i) in cardList" :key="i"
-        :card="card"
+      <card class="card-item" v-for="(score, i) in scoreList" :key="i"
+        :score="score"
         @takeCard="takeCard"
       />
     </div>
-    {{ scoreList }}
   </div>
 </template>
 

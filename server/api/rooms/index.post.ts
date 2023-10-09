@@ -2,8 +2,8 @@ import Room from "~/domain/Room"
 import roomDynamoDBRepository from "~/server/infra/roomDynamoDBRepository"
 
 export default defineEventHandler(async (event) => {
-  const { name, cardSetId, cardSetName } = (await readBody(event))
-  const room = new Room('', name, true, cardSetId, cardSetName, [], [])
+  const { id, name, cardSetId, cardSetName, matchId } = (await readBody(event))
+  const room = new Room(id, name, true, cardSetId, cardSetName, [], [], matchId)
   const repository = new roomDynamoDBRepository()
   await repository.create(room)
 

@@ -110,6 +110,23 @@ exports.websocketApp = ws(
       }
     },
 
+    // "takeCard" アクションのハンドラ
+    async takeCard(event: WebSocketEvent) {
+      const {
+        id: connectionId,
+        message: { body },
+        context: { postToConnection }
+      } = event;
+      for (let i = 0; i < wsRooms.length; i++) {
+        if (wsRooms[i].roomId === body.roomId) {
+          await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
+            await postToConnection({ scoreId: body.id, id: connection }, connection);
+          }))
+          return { statusCode: 200 };
+        }
+      }
+    },
+
     // "sendMessageToRoom" アクションのハンドラ
     async sendMessageToRoom(event: WebSocketEvent) {
       const {

@@ -3,6 +3,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 
 const matchFlag = ref(false)
 const roomId = ref('')
+const scoreId = ref('')
 
 // websocket関連----------------------------------------------------------
 const message = ref({})
@@ -17,19 +18,22 @@ ws.onopen = async (event) => {
 
 const joinRoom = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "joinRoom" ,body: room}))
+  ws.send(JSON.stringify({ action: "joinRoom", body: room}))
 }
 
 const leaveRoom = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "leaveRoom" ,body: room}))
+  ws.send(JSON.stringify({ action: "leaveRoom", body: room}))
 }
 
 const startMatch = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "startMatch" ,body: room.id}))
+  ws.send(JSON.stringify({ action: "startMatch", body: room.id}))
 }
 
+const takeCard = (score) => {
+  ws.send(JSON.stringify({ action: "takeCard", body: score}))
+}
 
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
@@ -37,7 +41,9 @@ ws.onmessage = async (event) => {
   if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
   if (JSON.parse(event.data).roomId) { roomId.value = JSON.parse(event.data).roomId }
   if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
-
+  if (JSON.parse(event.data).scoreId) { 
+    scoreId.value = JSON.parse(event.data).scoreId
+   }
 }
 
 const closeConnection = () => {
@@ -78,6 +84,8 @@ const reconnectMatch = (id: string) => {
       <div v-if="matchFlag && pageName==='PLAY'">
         <MATCH 
           :roomId="ref(roomId)"
+          :scoreId="ref(scoreId)"
+          @take-card="takeCard"
         />
       </div>
       <div v-else>

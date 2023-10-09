@@ -4,6 +4,11 @@ import ScoreId from "~/domain/Score/ScoreId"
 type ScoreResponse = {
   id: string
   cardId: string
+  question: string
+  answer: string
+  cardSetId: string
+  cardSetName: string
+  copiedAnswer: string
   roomId: string
   userId: string
   userName: string
@@ -20,6 +25,11 @@ export default defineEventHandler(async (event) => {
   const scoreResponse: ScoreResponse = {
     id: score.id.value,
     cardId: score.cardId.value,
+    question: score.question,
+    answer: score.answer,
+    cardSetId: score.cardSetId.value,
+    cardSetName: score.cardSetName,
+    copiedAnswer: score.copiedAnswer,
     roomId: score.roomId.value,
     userId: score.userId.value,
     userName: score.userName,

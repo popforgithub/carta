@@ -22,7 +22,7 @@ export default class Room {
     cardSetName: string = '',
     playerIds: Array<string> = [],
     audienceIds: Array<string> = [],
-    matchId?: string
+    matchId: string
     ) {
     this.id = new RoomId(id)
     this.name = name
@@ -31,6 +31,6 @@ export default class Room {
     cardSetName ? this.cardSetName = cardSetName : this.cardSetName = ''
     playerIds ? this.playerIds = playerIds.map(playerId => new UserId(playerId)) : this.playerIds = []
     audienceIds ? this.audienceIds = audienceIds.map(audienceId => new UserId(audienceId)) : this.audienceIds = []
-    matchId ? this.matchId = matchId : this.matchId = ulid()
+    this.matchId = matchId
   }
 }

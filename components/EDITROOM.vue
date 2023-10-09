@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ulid } from 'ulidx';
+
+
 const headers = ['ルーム名', 'カルタ', '削除']
 const { data: roomList, refresh } = await useFetch('/api/rooms', { 
   method: 'get',
@@ -24,27 +27,68 @@ const findCardSetNameByCardSetId = async (cardSetId) => {
   )
   return response.value.name
 }
-
+const getCardList = async (cardSetId) => {
+  const { data: cardList } = await useLazyFetch('/api/cards', { 
+    method: 'get',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    params: {
+      cardSetId: cardSetId
+    },
+  })
+  return cardList
+}
 const inputRoomName = ref('')
 const inputCardSetId = ref('')
 const createRoom = async () => {
   if (inputRoomName.value) {
     const cardSetName = await findCardSetNameByCardSetId(inputCardSetId.value)
+    const roomId = ulid()
+    const matchId = ulid()
     await useFetch('/api/rooms',
-    { 
-      method: 'post',
-      body: { 
-        name: inputRoomName.value,
-        cardSetId: inputCardSetId.value,
-        cardSetName: cardSetName,
-      },
-      headers: {
-        'Content-Type': 'application/json'
+      { 
+        method: 'post',
+        body: { 
+          id: roomId,
+          name: inputRoomName.value,
+          cardSetId: inputCardSetId.value,
+          cardSetName: cardSetName,
+          matchId
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-    })
+    )
     inputRoomName.value = ''
-    refresh()
+    const cardList = await getCardList(inputCardSetId.value)
+    // createScoreList----------------
+    for (const card of cardList.value) {
+      await useFetch('/api/scores',
+        { 
+          method: 'post',
+          body: { 
+            cardId: card.id,
+            question: card.question,
+            answer: card.answer,
+            cardSetId: inputCardSetId.value,
+            cardSetName: cardSetName,
+            copiedAnswer: card.answer,
+            roomId,
+            userId: '',
+            userName: '',
+            matchId
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+    }
+    // -------------------------------
   }
+  refresh()
 }
 const alartMessage = ref('')
 const deleteRoom = async (room) => {
