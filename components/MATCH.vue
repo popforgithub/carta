@@ -99,11 +99,21 @@ const closeScoreDialog = async () => {
   scoreDialog.value = false
 }
 const takeCard = async (score: Score) => {
-  await updateScore(score)
-  await refreshScoreList()
-  const updatedScore = await getScoreById(score.id)
-  const nextScoreId = await pickNextCardId()
-  emits("takeCard", updatedScore, nextScoreId)
+  console.log('aaa', props.nextScoreId.value)
+  console.log('bbb', score.id)
+  if (props.nextScoreId.value === score.id) { 
+    await updateScore(score)
+    await refreshScoreList()
+    const updatedScore = await getScoreById(score.id)
+    const nextScoreId = await pickNextCardId()
+    emits("takeCard", updatedScore, nextScoreId)
+  } else {
+    await wrongCardPenalty()
+  }
+}
+const penaltyDialog = ref(false)
+const wrongCardPenalty = async () => {
+  penaltyDialog.value = true
 }
 
 const findUserById = async (session: string) => {
@@ -138,8 +148,22 @@ const finishGame = async (scoreId, roomId) => {
   emits("finishGame", scoreId, roomId)
 }
 const finishFlag = ref(false)
+
+const deleteRoom = async () => {
+  await useFetch('/api/rooms/:id',
+  { 
+    method: 'delete',
+    params: { id: props.roomId.value },
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+  )
+}
+
 watch(() => props.nextScoreId, async () => {
   if (props.nextScoreId.value) {
+    penaltyDialog.value = false
     scoreDialog.value = true
     nextScore.value = await getScoreById(props.nextScoreId.value)
     refreshScoreList()
@@ -149,27 +173,18 @@ watch(() => props.nextScoreId, async () => {
     refreshScoreList()
   }
 })
-
-const deleteRoom = async () => {
-  await useFetch('/api/rooms/:id',
-    { 
-      method: 'delete',
-      params: { id: props.roomId.value },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-}
 </script>
 
 <template>
   <SCOREDIALOG
     :score="props.score"
-    :dialog="ref(scoreDialog)"
+    :scoreDialog="ref(scoreDialog)"
     :finish-flag="ref(finishFlag)"
     @closeScoreDialog="closeScoreDialog"
     @finishGame="finishGame"
+  />
+  <PENALTYDIALOG
+    :penaltyDialog="ref(penaltyDialog)"
   />
   <div>
     <div v-if="nextScore">{{ nextScore.question }}</div>
