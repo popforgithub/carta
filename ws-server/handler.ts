@@ -34,20 +34,20 @@ exports.websocketApp = ws(
       }
     },
 
-    // 未定義の action を指定すると通る
-    async default(event: WebSocketEvent) {
-      const {
-        id: connectionId,
-        message: { body },
-        context: { postToConnection },
-      } = event;
+    // // 未定義の action を指定すると通る
+    // async default(event: WebSocketEvent) {
+    //   const {
+    //     id: connectionId,
+    //     message: { body },
+    //     context: { postToConnection },
+    //   } = event;
 
-      console.log("default message", connectionId, body);
+    //   console.log("default message", connectionId, body);
 
-      await postToConnection({ action: "default", echo: body }, connectionId);
+    //   await postToConnection({ action: "default", echo: body }, connectionId);
 
-      return { statusCode: 200 };
-    },
+    //   return { statusCode: 200 };
+    // },
 
     // "joinRoom" アクションのハンドラ
     async joinRoom(event: WebSocketEvent) {
@@ -101,9 +101,9 @@ exports.websocketApp = ws(
       } = event;
 
       for (let i = 0; i < wsRooms.length; i++) {
-        if (wsRooms[i].roomId === body) {
+        if (wsRooms[i].roomId === body[0]) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ matchFlag: true, roomId: body, id: connection }, connection);
+            await postToConnection({ matchFlag: true, roomId: body[0], nextScoreId: body[1], id: connection }, connection);
           }))
           return { statusCode: 200 };
         }
@@ -118,32 +118,50 @@ exports.websocketApp = ws(
         context: { postToConnection }
       } = event;
       for (let i = 0; i < wsRooms.length; i++) {
-        if (wsRooms[i].roomId === body.roomId) {
+        if (wsRooms[i].roomId === body[0].roomId) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ scoreId: body.id, id: connection }, connection);
+            await postToConnection({ score: body[0], nextScoreId: body[1], id: connection }, connection);
           }))
           return { statusCode: 200 };
         }
       }
     },
 
-    // "sendMessageToRoom" アクションのハンドラ
-    async sendMessageToRoom(event: WebSocketEvent) {
+    // "finishGame" アクションのハンドラ
+    async finishGame(event: WebSocketEvent) {
       const {
         id: connectionId,
         message: { body },
         context: { postToConnection }
       } = event;
-
       for (let i = 0; i < wsRooms.length; i++) {
-        if (wsRooms[i].roomId === body.id) {
+        if (wsRooms[i].roomId === body[1]) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ echo: body, id: connection }, connection);
+            await postToConnection({ finishFlag: true, matchId: body[0], roomId: body[1], id: connection }, connection);
           }))
+          wsRooms[i].connectionIds = []
           return { statusCode: 200 };
         }
       }
     },
+
+    // // "sendMessageToRoom" アクションのハンドラ
+    // async sendMessageToRoom(event: WebSocketEvent) {
+    //   const {
+    //     id: connectionId,
+    //     message: { body },
+    //     context: { postToConnection }
+    //   } = event;
+
+    //   for (let i = 0; i < wsRooms.length; i++) {
+    //     if (wsRooms[i].roomId === body.id) {
+    //       await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
+    //         await postToConnection({ echo: body, id: connection }, connection);
+    //       }))
+    //       return { statusCode: 200 };
+    //     }
+    //   }
+    // },
   })
 );
 

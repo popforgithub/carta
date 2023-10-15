@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 type Room = {
   id: string
   name: string

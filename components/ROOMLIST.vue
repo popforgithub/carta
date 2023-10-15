@@ -21,7 +21,7 @@ const emits = defineEmits<{
   (e: 'reconnectMatch', v: string): void
   (e: 'joinRoom', v: Room): void
   (e: 'leaveRoom', v: Room): void
-  (e: 'startMatch', v: Room): void
+  (e: 'startMatch', v: Room, v2: string): void
 }>()
 
 const { data: roomList, refresh } = await useFetch('/api/rooms', { 
@@ -105,7 +105,23 @@ const closeDialog = () => {
 const startMatch = async (room: Room) => {
   room.isOpen = false
   await updateRoom(room)
-  emits('startMatch', room)
+  const nextScoreId: string = await getNextScoreId(room)
+  emits('startMatch', room, nextScoreId)
+}
+
+const getNextScoreId = async (room: Room)  => {
+  const { data: scoreList } = await useFetch('/api/scores',
+    { 
+      method: 'get',
+      params: { matchId: room.matchId},
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  const rnd = Math.floor(Math.random() * scoreList.value.length)
+  const nextScoreId = scoreList.value[rnd].id  
+  return nextScoreId
 }
 
 watch(() => props.message, () => {
@@ -114,7 +130,7 @@ watch(() => props.message, () => {
 </script>
 
 <template>
-  <DIALOG 
+  <MATCHDIALOG
     :isActive="isDialogActive"
     :room="roomInfoForDialog"
     @startMatch="startMatch"

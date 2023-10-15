@@ -78,7 +78,7 @@ export default class ScoreDynamoDBRepository implements IScoreRepository {
     const userId: string = response.Item.userId
     const userName: string = response.Item.userName
     const matchId: string = response.Item.matchId
-    return new Score(id, cardId, question, answer, cardSetId, cardSetName, copiedAnswer, roomId, userId, userName, matchId)
+    return new Score(cardId, question, answer, cardSetId, cardSetName, copiedAnswer, roomId, userId, userName, matchId, id)
   }
 
   async create(score: Score): Promise<void> {

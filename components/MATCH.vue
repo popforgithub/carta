@@ -4,6 +4,7 @@ type Room = {
   name: string
   isOpen: boolean
   cardSetId: string
+  cardSetName: string
   playerIds: Array<string>
   audienceIds: Array<string>
   matchId: string
@@ -28,12 +29,14 @@ type Score = {
 
 const props = defineProps<{
   roomId: Ref<string>
-  scoreId: Ref<string>
+  score: Ref<Score>
+  nextScoreId: Ref<string>
 }>()
 const emits = defineEmits<{
-  (e: 'takeCard', v: Score): void
+  (e: 'takeCard', v: Score, v2: string): void
+  (e: 'finishGame', v: string, v2: string): void
 }>()
-  
+
 const session = useCookie('session')
 const { data: room } = await useFetch('/api/rooms/:id',
   { 
@@ -54,6 +57,18 @@ const { data: scoreList, refresh: refreshScoreList } = await useFetch('/api/scor
     }
   }
 )
+const getScoreById = async (scoreId: string) => {
+  const { data: scoreResponse } = await useFetch('/api/scores/:id',
+    { 
+      method: 'get',
+      params: { id: scoreId },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  return scoreResponse.value
+}
 const scoredUser = ref({id: '', name: ''})
 const updateScore = async (score: Score) => {
   scoredUser.value = await findUserById(session.value)
@@ -79,9 +94,16 @@ const updateScore = async (score: Score) => {
     }
   )
 }
+const scoreDialog = ref(false)
+const closeScoreDialog = async () => {
+  scoreDialog.value = false
+}
 const takeCard = async (score: Score) => {
   await updateScore(score)
-  emits("takeCard", score)
+  await refreshScoreList()
+  const updatedScore = await getScoreById(score.id)
+  const nextScoreId = await pickNextCardId()
+  emits("takeCard", updatedScore, nextScoreId)
 }
 
 const findUserById = async (session: string) => {
@@ -96,14 +118,61 @@ const findUserById = async (session: string) => {
   )
   return userResponse.value
 }
-watch(() => props.scoreId.value, () => {
-  console.log('1111111111111111111111111111', props.scoreId.value)
-  refreshScoreList()
+
+const pickNextCardId = async () => {
+  const availableCardList = await scoreList.value.filter(score => score.copiedAnswer !== '')
+  if (availableCardList.length > 0) {
+    const rnd = await Math.floor(Math.random() * availableCardList.length)
+    const pickedScoreId = availableCardList[rnd].id
+    return pickedScoreId
+  } else {
+    return null
+  }
+}
+
+const nextScore = ref(await getScoreById(props.nextScoreId.value))
+
+const finishGame = async (scoreId, roomId) => {
+  scoreDialog.value = false
+  await deleteRoom()
+  emits("finishGame", scoreId, roomId)
+}
+const finishFlag = ref(false)
+watch(() => props.nextScoreId, async () => {
+  if (props.nextScoreId.value) {
+    scoreDialog.value = true
+    nextScore.value = await getScoreById(props.nextScoreId.value)
+    refreshScoreList()
+  } else {
+    finishFlag.value = true
+    scoreDialog.value = true
+    refreshScoreList()
+  }
 })
+
+const deleteRoom = async () => {
+  await useFetch('/api/rooms/:id',
+    { 
+      method: 'delete',
+      params: { id: props.roomId.value },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+}
 </script>
 
 <template>
+  <SCOREDIALOG
+    :score="props.score"
+    :dialog="ref(scoreDialog)"
+    :finish-flag="ref(finishFlag)"
+    @closeScoreDialog="closeScoreDialog"
+    @finishGame="finishGame"
+  />
   <div>
+    <div v-if="nextScore">{{ nextScore.question }}</div>
     <div class="card-container">
       <card class="card-item" v-for="(score, i) in scoreList" :key="i"
         :score="score"

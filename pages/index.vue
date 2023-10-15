@@ -3,7 +3,10 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 
 const matchFlag = ref(false)
 const roomId = ref('')
-const scoreId = ref('')
+const score = ref()
+const nextScoreId = ref('')
+const matchId = ref('')
+const finishFlag = ref(false)
 
 // websocket関連----------------------------------------------------------
 const message = ref({})
@@ -26,13 +29,17 @@ const leaveRoom = (room) => {
   ws.send(JSON.stringify({ action: "leaveRoom", body: room}))
 }
 
-const startMatch = (room) => {
+const startMatch = (room, nextScoreId) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "startMatch", body: room.id}))
+  ws.send(JSON.stringify({ action: "startMatch", body: [room.id, nextScoreId]}))
 }
 
-const takeCard = (score) => {
-  ws.send(JSON.stringify({ action: "takeCard", body: score}))
+const takeCard = (score, nextScoreId) => {
+  ws.send(JSON.stringify({ action: "takeCard", body: [score, nextScoreId]}))
+}
+
+const finishGame = (scoreId, roomId) => {
+  ws.send(JSON.stringify({ action: "finishGame", body: [scoreId, roomId]}))
 }
 
 // サーバからのデータ受信時に呼ばれる
@@ -41,9 +48,13 @@ ws.onmessage = async (event) => {
   if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
   if (JSON.parse(event.data).roomId) { roomId.value = JSON.parse(event.data).roomId }
   if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
-  if (JSON.parse(event.data).scoreId) { 
-    scoreId.value = JSON.parse(event.data).scoreId
-   }
+  if (JSON.parse(event.data).score) { score.value = JSON.parse(event.data).score }
+  if (JSON.parse(event.data).matchId) { matchId.value = JSON.parse(event.data).matchId }
+  if (JSON.parse(event.data).finishFlag) { 
+    finishFlag.value = true
+    matchFlag.value = false
+  }
+  nextScoreId.value = JSON.parse(event.data).nextScoreId
 }
 
 const closeConnection = () => {
@@ -66,6 +77,12 @@ const reconnectMatch = (id: string) => {
   roomId.value = id
   matchFlag.value = true
 }
+const reset = () => {
+  matchFlag.value = false
+  finishFlag.value = false
+  roomId.value = ''
+  location.reload()
+}
 </script>
 
 <template>
@@ -81,35 +98,47 @@ const reconnectMatch = (id: string) => {
         :wsConnections="ref(wsConnections)"
         @pageSelect="pageSelect"
       />
-      <div v-if="matchFlag && pageName==='PLAY'">
-        <MATCH 
-          :roomId="ref(roomId)"
-          :scoreId="ref(scoreId)"
-          @take-card="takeCard"
+      <div v-if="finishFlag">
+        <RESULT 
+        :matchId="ref(matchId)"
+        :roomId="ref(roomId)"
+        :resultFlag="true"
+        @reset="reset"
         />
       </div>
       <div v-else>
-        <div v-if="pageName==='PLAY'">
-          <ROOMLIST
-            :sessionId="ref(sessionUser.id)"
-            :message="ref(message)"
-            @reconnect-match="reconnectMatch"
-            @join-room="joinRoom"
-            @leave-room="leaveRoom"
-            @start-match="startMatch"
+        <div v-if="matchFlag && pageName==='PLAY'">
+          <MATCH 
+            :roomId="ref(roomId)"
+            :score="ref(score)"
+            :nextScoreId="ref(nextScoreId)"
+            @take-card="takeCard"
+            @finish-game="finishGame"
           />
         </div>
-        <div v-else-if="pageName==='ROOM'">
-          <EDITROOM
-          />
-        </div>
-        <div v-else-if="pageName==='CARD'">
-          <EDITCARDLIST
-          />
-        </div>
-        <div v-else="pageName==='DB'">
-          <EDITDB
-          />
+        <div v-else>
+          <div v-if="pageName==='PLAY'">
+            <ROOMLIST
+              :sessionId="ref(sessionUser.id)"
+              :message="ref(message)"
+              @reconnect-match="reconnectMatch"
+              @join-room="joinRoom"
+              @leave-room="leaveRoom"
+              @start-match="startMatch"
+            />
+          </div>
+          <div v-else-if="pageName==='ROOM'">
+            <EDITROOM
+            />
+          </div>
+          <div v-else-if="pageName==='CARD'">
+            <EDITCARDLIST
+            />
+          </div>
+          <div v-else="pageName==='DB'">
+            <EDITDB
+            />
+          </div>
         </div>
       </div>
     </div>
