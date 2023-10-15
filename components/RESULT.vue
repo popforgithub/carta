@@ -54,9 +54,8 @@ const groupedScores = scoreList.value.reduce((result, score) => {
 }, {} as Record<string, Score[]>)
 // groupedScoresをuserIdのScore数で降順にソート
 const sortedGroupedScores = Object.entries(groupedScores).sort(
-  (a,b) => b.length - a.length
+  ([userIdA, scoresA], [userIdB, scoresB]) => scoresB.length - scoresA.length
 )
-
 const closeDialog = async () => {
   dialog.value = false
   emits('reset')
