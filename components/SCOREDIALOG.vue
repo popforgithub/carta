@@ -14,7 +14,7 @@ type Score = {
 }
 const props = defineProps<{
   score: Ref<Score>,
-  dialog: Ref<boolean>
+  scoreDialog: Ref<boolean>
   finishFlag: Ref<boolean>
 }>()
 const emits = defineEmits<{
@@ -30,8 +30,8 @@ const overlaySettings = {
 const countdown = ref(0)
 let countdownTimer = null
 
-watch(() => props.dialog.value, () => {
-  if (props.dialog.value) {
+watch(() => props.scoreDialog.value, () => {
+  if (props.scoreDialog.value) {
     countdown.value = 1 // タイムアウト時間を設定（例として10秒）
     countdownTimer = setInterval(() => {
       countdown.value--
@@ -50,7 +50,7 @@ watch(() => props.dialog.value, () => {
 
 <template>
   <div class="text-center">
-    <v-dialog v-model="props.dialog.value" persistent width="auto" :overlay="overlaySettings">
+    <v-dialog v-model="props.scoreDialog.value" persistent width="auto" :overlay="overlaySettings">
       <v-card>
         <v-card-text>
           {{ props.score.value.userName }} さんがカードを取りました。

@@ -78,9 +78,6 @@ const reconnectMatch = (id: string) => {
   matchFlag.value = true
 }
 const reset = () => {
-  matchFlag.value = false
-  finishFlag.value = false
-  roomId.value = ''
   location.reload()
 }
 </script>
