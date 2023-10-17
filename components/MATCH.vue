@@ -30,6 +30,7 @@ type Score = {
 const props = defineProps<{
   roomId: Ref<string>
   score: Ref<Score>
+  initialNextScoreId: Ref<string>
   nextScoreId: Ref<string>
 }>()
 const emits = defineEmits<{
@@ -99,9 +100,13 @@ const closeScoreDialog = async () => {
   scoreDialog.value = false
 }
 const takeCard = async (score: Score) => {
-  console.log('aaa', props.nextScoreId.value)
-  console.log('bbb', score.id)
-  if (props.nextScoreId.value === score.id) { 
+  if (!props.nextScoreId.value && props.initialNextScoreId.value === score.id) {
+    await updateScore(score)
+    await refreshScoreList()
+    const updatedScore = await getScoreById(score.id)
+    const nextScoreId = await pickNextCardId()
+    emits("takeCard", updatedScore, nextScoreId)
+  } else if (props.nextScoreId.value === score.id) { 
     await updateScore(score)
     await refreshScoreList()
     const updatedScore = await getScoreById(score.id)
@@ -136,13 +141,18 @@ const pickNextCardId = async () => {
     const pickedScoreId = availableCardList[rnd].id
     return pickedScoreId
   } else {
-    return null
+    return 'endOfTheGame'
   }
 }
 
-const nextScore = ref(await getScoreById(props.nextScoreId.value))
+const nextScoreQuestion = ref('Please wait for the next Question')
+if (props.initialNextScoreId.value) {
+  nextScoreQuestion.value = (await getScoreById(props.initialNextScoreId.value)).question
+  console.log('aaaaaaaaaaaaaaa', nextScoreQuestion.value)
+}
 
 const finishGame = async (scoreId, roomId) => {
+  console.log('matchfinishgame', scoreId, roomId)
   scoreDialog.value = false
   await deleteRoom()
   emits("finishGame", scoreId, roomId)
@@ -162,10 +172,10 @@ const deleteRoom = async () => {
 }
 
 watch(() => props.nextScoreId, async () => {
-  if (props.nextScoreId.value) {
+  if (props.nextScoreId.value !== 'endOfTheGame') {
     penaltyDialog.value = false
     scoreDialog.value = true
-    nextScore.value = await getScoreById(props.nextScoreId.value)
+    nextScoreQuestion.value = (await getScoreById(props.nextScoreId.value)).question
     refreshScoreList()
   } else {
     finishFlag.value = true
@@ -173,6 +183,10 @@ watch(() => props.nextScoreId, async () => {
     refreshScoreList()
   }
 })
+// watch(() => props.initialNextScoreId, async () => {
+//   nextScoreQuestion.value = (await getScoreById(props.nextScoreId.value)).question
+//   console.log('bbbbbbbbbbbbbbb', nextScoreQuestion.value)
+// })
 </script>
 
 <template>
@@ -187,7 +201,7 @@ watch(() => props.nextScoreId, async () => {
     :penaltyDialog="ref(penaltyDialog)"
   />
   <div>
-    <div v-if="nextScore">{{ nextScore.question }}</div>
+    <div>{{ nextScoreQuestion }}</div>
     <div class="card-container">
       <card class="card-item" v-for="(score, i) in scoreList" :key="i"
         :score="score"

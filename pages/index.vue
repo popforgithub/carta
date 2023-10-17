@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { match } from 'assert';
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
 const matchFlag = ref(false)
 const roomId = ref('')
 const score = ref()
+const initialNextScoreId = ref('')
 const nextScoreId = ref('')
 const matchId = ref('')
 const finishFlag = ref(false)
@@ -29,9 +31,9 @@ const leaveRoom = (room) => {
   ws.send(JSON.stringify({ action: "leaveRoom", body: room}))
 }
 
-const startMatch = (room, nextScoreId) => {
+const startMatch = (room, initialNextScoreId) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "startMatch", body: [room.id, nextScoreId]}))
+  ws.send(JSON.stringify({ action: "startMatch", body: [room.id, initialNextScoreId]}))
 }
 
 const takeCard = (score, nextScoreId) => {
@@ -39,7 +41,14 @@ const takeCard = (score, nextScoreId) => {
 }
 
 const finishGame = (scoreId, roomId) => {
+  console.log('indexfinishgame', scoreId, roomId)
   ws.send(JSON.stringify({ action: "finishGame", body: [scoreId, roomId]}))
+}
+
+const reconnectMatch = (roomID: string) => {
+  roomId.value = roomID
+  matchFlag.value = true
+  ws.send(JSON.stringify({ action: "reconnectMatch", body: roomID}))
 }
 
 // サーバからのデータ受信時に呼ばれる
@@ -50,11 +59,12 @@ ws.onmessage = async (event) => {
   if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
   if (JSON.parse(event.data).score) { score.value = JSON.parse(event.data).score }
   if (JSON.parse(event.data).matchId) { matchId.value = JSON.parse(event.data).matchId }
-  if (JSON.parse(event.data).finishFlag) { 
+  if (JSON.parse(event.data).finishFlag) {
     finishFlag.value = true
     matchFlag.value = false
   }
-  nextScoreId.value = JSON.parse(event.data).nextScoreId
+  if (JSON.parse(event.data).initialNextScoreId) { initialNextScoreId.value = JSON.parse(event.data).initialNextScoreId }
+  if (JSON.parse(event.data).nextScoreId) { nextScoreId.value = JSON.parse(event.data).nextScoreId }
 }
 
 const closeConnection = () => {
@@ -72,10 +82,6 @@ const sessionUser: Ref<{id: string, name: string}> = ref()
 const receiveSessionUser = async (user) => {
   sessionUser.value = user
   isRecognized.value = true
-}
-const reconnectMatch = (id: string) => {
-  roomId.value = id
-  matchFlag.value = true
 }
 const reset = () => {
   location.reload()
@@ -108,6 +114,7 @@ const reset = () => {
           <MATCH 
             :roomId="ref(roomId)"
             :score="ref(score)"
+            :initialNextScoreId="ref(initialNextScoreId)"
             :nextScoreId="ref(nextScoreId)"
             @take-card="takeCard"
             @finish-game="finishGame"

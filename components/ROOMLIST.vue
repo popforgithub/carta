@@ -105,11 +105,11 @@ const closeDialog = () => {
 const startMatch = async (room: Room) => {
   room.isOpen = false
   await updateRoom(room)
-  const nextScoreId: string = await getNextScoreId(room)
-  emits('startMatch', room, nextScoreId)
+  const initialNextScoreId: string = await getInitialNextScoreId(room)
+  emits('startMatch', room, initialNextScoreId)
 }
 
-const getNextScoreId = async (room: Room)  => {
+const getInitialNextScoreId = async (room: Room)  => {
   const { data: scoreList } = await useFetch('/api/scores',
     { 
       method: 'get',
@@ -120,8 +120,8 @@ const getNextScoreId = async (room: Room)  => {
     }
   )
   const rnd = Math.floor(Math.random() * scoreList.value.length)
-  const nextScoreId = scoreList.value[rnd].id  
-  return nextScoreId
+  const initialNextScoreId = scoreList.value[rnd].id  
+  return initialNextScoreId
 }
 
 watch(() => props.message, () => {

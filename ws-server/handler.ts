@@ -26,9 +26,9 @@ exports.websocketApp = ws(
       for (let i = 0; i < wsRooms.length; i++) {
         if (wsRooms[i].connectionIds.includes(event.id)) {
           wsRooms[i].connectionIds = wsRooms[i].connectionIds.filter((id) => id !== event.id)
-          await Promise.all(allConnections.map(async (connection) => {
-            await postToConnection({ id: connection, wsConnections: allConnections.length }, connection);
-          }))
+          // await Promise.all(allConnections.map(async (connection) => {
+          //   await postToConnection({ id: connection, wsConnections: allConnections.length }, connection);
+          // }))
           return { statusCode: 200 };
         }
       }
@@ -103,7 +103,7 @@ exports.websocketApp = ws(
       for (let i = 0; i < wsRooms.length; i++) {
         if (wsRooms[i].roomId === body[0]) {
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-            await postToConnection({ matchFlag: true, roomId: body[0], nextScoreId: body[1], id: connection }, connection);
+            await postToConnection({ matchFlag: true, roomId: body[0], initialNextScoreId: body[1], id: connection }, connection);
           }))
           return { statusCode: 200 };
         }
@@ -139,29 +139,28 @@ exports.websocketApp = ws(
           await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
             await postToConnection({ finishFlag: true, matchId: body[0], roomId: body[1], id: connection }, connection);
           }))
-          wsRooms[i].connectionIds = []
+          wsRooms[i] = null
+          wsRooms.filter(Boolean)
           return { statusCode: 200 };
         }
       }
     },
 
-    // // "sendMessageToRoom" アクションのハンドラ
-    // async sendMessageToRoom(event: WebSocketEvent) {
-    //   const {
-    //     id: connectionId,
-    //     message: { body },
-    //     context: { postToConnection }
-    //   } = event;
-
-    //   for (let i = 0; i < wsRooms.length; i++) {
-    //     if (wsRooms[i].roomId === body.id) {
-    //       await Promise.all(wsRooms[i].connectionIds.map(async (connection) => {
-    //         await postToConnection({ echo: body, id: connection }, connection);
-    //       }))
-    //       return { statusCode: 200 };
-    //     }
-    //   }
-    // },
+    // "reconnectMatch" アクションのハンドラ
+    async reconnectMatch(event: WebSocketEvent) {
+      const {
+        id: connectionId,
+        message: { body },
+        context: { postToConnection }
+      } = event;
+      
+      for (let i = 0; i < wsRooms.length; i++) {
+        if (wsRooms[i].roomId === body) {
+          wsRooms[i].connectionIds.push(connectionId)
+          return { statusCode: 200 };
+        }
+      }
+    },
   })
 );
 
