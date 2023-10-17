@@ -120,6 +120,9 @@ const penaltyDialog = ref(false)
 const wrongCardPenalty = async () => {
   penaltyDialog.value = true
 }
+const closePenaltyDialog = async () => {
+  penaltyDialog.value = false
+}
 
 const findUserById = async (session: string) => {
   const { data: userResponse } = await useFetch('/api/users/:id',
@@ -148,11 +151,9 @@ const pickNextCardId = async () => {
 const nextScoreQuestion = ref('Please wait for the next Question')
 if (props.initialNextScoreId.value) {
   nextScoreQuestion.value = (await getScoreById(props.initialNextScoreId.value)).question
-  console.log('aaaaaaaaaaaaaaa', nextScoreQuestion.value)
 }
 
 const finishGame = async (scoreId, roomId) => {
-  console.log('matchfinishgame', scoreId, roomId)
   scoreDialog.value = false
   await deleteRoom()
   emits("finishGame", scoreId, roomId)
@@ -183,10 +184,6 @@ watch(() => props.nextScoreId, async () => {
     refreshScoreList()
   }
 })
-// watch(() => props.initialNextScoreId, async () => {
-//   nextScoreQuestion.value = (await getScoreById(props.nextScoreId.value)).question
-//   console.log('bbbbbbbbbbbbbbb', nextScoreQuestion.value)
-// })
 </script>
 
 <template>
@@ -199,6 +196,7 @@ watch(() => props.nextScoreId, async () => {
   />
   <PENALTYDIALOG
     :penaltyDialog="ref(penaltyDialog)"
+    @close-penalty-dialog="closePenaltyDialog"
   />
   <div>
     <div>{{ nextScoreQuestion }}</div>

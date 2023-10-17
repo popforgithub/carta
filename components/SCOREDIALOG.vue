@@ -31,16 +31,14 @@ const countdown = ref(0)
 let countdownTimer = null
 
 watch(() => props.scoreDialog.value, () => {
-  console.log('props.scoredialog', props.scoreDialog.value)
   if (props.scoreDialog.value) {
-    countdown.value = 1 // タイムアウト時間を設定(s)
+    countdown.value = 10 // タイムアウト時間を設定(s)
     countdownTimer = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) {
         emits("closeScoreDialog")
         clearInterval(countdownTimer) // タイムアウト後にダイアログを閉じる（適切な処理を追加）
         if (props.finishFlag.value) { 
-          console.log('scoredialogfinisigame', props.finishFlag.value)
           emits("finishGame", props.score.value.matchId, props.score.value.roomId)
          }
         return

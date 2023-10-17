@@ -41,7 +41,6 @@ const takeCard = (score, nextScoreId) => {
 }
 
 const finishGame = (scoreId, roomId) => {
-  console.log('indexfinishgame', scoreId, roomId)
   ws.send(JSON.stringify({ action: "finishGame", body: [scoreId, roomId]}))
 }
 
