@@ -140,7 +140,7 @@ exports.websocketApp = ws(
             await postToConnection({ finishFlag: true, matchId: body[0], roomId: body[1], id: connection }, connection);
           }))
           wsRooms[i] = null
-          wsRooms.filter(Boolean)
+          wsRooms = wsRooms.filter(room => room !== null)
           return { statusCode: 200 };
         }
       }

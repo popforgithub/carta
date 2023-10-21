@@ -83,6 +83,7 @@ const receiveSessionUser = async (user) => {
   isRecognized.value = true
 }
 const reset = () => {
+  finishFlag.value = false
   location.reload()
 }
 </script>

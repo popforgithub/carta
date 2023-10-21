@@ -24,6 +24,8 @@ watch(() => props.penaltyDialog.value, () => {
         clearInterval(countdownTimer)
       }
     }, 1000)
+  } else {
+    clearInterval(countdownTimer)
   }
 })
 </script>
@@ -33,8 +35,8 @@ watch(() => props.penaltyDialog.value, () => {
     <v-dialog v-model="props.penaltyDialog.value" persistent width="auto" :overlay="overlaySettings">
       <v-card>
         <v-card-text>
-          <p>Next Question in {{ countdown }} seconds</p>
-          おてつきです。このターンはもうだめです。リロードしてもだめです。
+          <p>おてつきです。</p>
+          <p>Wait for {{ countdown }} seconds</p>
         </v-card-text>
       </v-card>
     </v-dialog>

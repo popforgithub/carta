@@ -199,7 +199,11 @@ watch(() => props.nextScoreId, async () => {
     @close-penalty-dialog="closePenaltyDialog"
   />
   <div>
-    <div>{{ nextScoreQuestion }}</div>
+    {{ nextScoreQuestion }}
+    <CARTAREADER
+      :nextScoreId="nextScoreId"
+      :nextScoreQuestion="nextScoreQuestion"
+    />
     <div class="card-container">
       <card class="card-item" v-for="(score, i) in scoreList" :key="i"
         :score="score"
