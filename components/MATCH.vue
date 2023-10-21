@@ -153,6 +153,13 @@ if (props.initialNextScoreId.value) {
   nextScoreQuestion.value = (await getScoreById(props.initialNextScoreId.value)).question
 }
 
+const readNextCartaFlag = ref(false)
+const readNextCarta = async () => {
+  readNextCartaFlag.value = true
+}
+const resetAudioFlag = () => {
+  readNextCartaFlag.value = false
+}
 const finishGame = async (scoreId, roomId) => {
   scoreDialog.value = false
   await deleteRoom()
@@ -192,6 +199,7 @@ watch(() => props.nextScoreId, async () => {
     :scoreDialog="ref(scoreDialog)"
     :finish-flag="ref(finishFlag)"
     @closeScoreDialog="closeScoreDialog"
+    @read-next-carta="readNextCarta"
     @finishGame="finishGame"
   />
   <PENALTYDIALOG
@@ -202,7 +210,9 @@ watch(() => props.nextScoreId, async () => {
     {{ nextScoreQuestion }}
     <CARTAREADER
       :nextScoreId="nextScoreId"
-      :nextScoreQuestion="nextScoreQuestion"
+      :nextScoreQuestion="ref(nextScoreQuestion)"
+      :readNextCartaFlag="ref(readNextCartaFlag)"
+      @reset-audio-flag="resetAudioFlag"
     />
     <div class="card-container">
       <card class="card-item" v-for="(score, i) in scoreList" :key="i"

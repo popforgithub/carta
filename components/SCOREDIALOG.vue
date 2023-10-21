@@ -19,6 +19,7 @@ const props = defineProps<{
 }>()
 const emits = defineEmits<{
   (e: 'closeScoreDialog'): void
+  (e: 'readNextCarta'): void
   (e: 'finishGame', v: string, v2: string): void
 }>()
 
@@ -32,12 +33,13 @@ let countdownTimer = null
 
 watch(() => props.scoreDialog.value, () => {
   if (props.scoreDialog.value) {
-    countdown.value = 1 // タイムアウト時間を設定(s)
+    countdown.value = 5 // タイムアウト時間を設定(s)
     countdownTimer = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) {
         emits("closeScoreDialog")
-        clearInterval(countdownTimer) // タイムアウト後にダイアログを閉じる（適切な処理を追加）
+        emits("readNextCarta")
+        clearInterval(countdownTimer) // タイムアウト後にダイアログを閉じる
         if (props.finishFlag.value) { 
           emits("finishGame", props.score.value.matchId, props.score.value.roomId)
          }
