@@ -209,8 +209,7 @@ watch(() => props.nextScoreId, async () => {
   <div>
     {{ nextScore.question }}
     <CARTAREADER
-      :initial-next-score-id="props.initialNextScoreId"
-      :next-score-id="props.nextScoreId"
+      :next-score="ref(nextScore)"
       :readNextCartaFlag="ref(readNextCartaFlag)"
       @reset-audio-flag="resetAudioFlag"
     />

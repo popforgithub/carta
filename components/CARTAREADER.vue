@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { filename } from 'pathe/utils'
 type Score = {
   id: string
   cardId: string
@@ -14,45 +15,34 @@ type Score = {
 }
 
 const props = defineProps<{
-  initialNextScoreId: Ref<string>
-  nextScoreId: Ref<string>
+  nextScore: Ref<Score>
   readNextCartaFlag: Ref<boolean>
 }>()
 const emits = defineEmits<{
   (e: 'resetAudioFlag'): void
 }>()
 
-const getScoreById = async (scoreId: string) => {
-  const { data: scoreResponse } = await useFetch('/api/scores/:id',
-    { 
-      method: 'get',
-      params: { id: scoreId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  return scoreResponse.value
-}
-const questionSrc = ref()
-const updateQuestionSrc = async (scoreId: string) => {
-  const score = await getScoreById(scoreId)
-  questionSrc.value = await import(`~/assets/cartaQuestion/${score.cardSetName}/${score.answer}.mp3`)
-}
+const questionSrc = ref(props.nextScore.value.answer)
+const glob = import.meta.glob('@/assets/cartaQuestion/LinuxCommandBeginner/*.mp3', { eager: true })
+const audio = Object.fromEntries(
+  Object.entries(glob).map(([key, value]) => [filename(key), value.default])
+)
+// const updateQuestionSrc = async (scoreId: string) => {
+//   console.log('!!!!!!!!', props.nextScore.value.cardSetName, props.nextScore.value.answer)
+//   questionSrc.value = new URL(`/assets/cartaQuestion/${props.nextScore.value.cardSetName}/${props.nextScore.value.answer}.mp3`, import.meta.url).href
+//   // questionSrc.value = new URL(`/assets/cartaQuestion/LinuxCommandBeginner/cat.mp3`, import.meta.url).href
+//   console.log('!!!!!!!!', questionSrc.value)
+// }
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 
 const playAudio = async () => {
+  audioPlayer.value.load()
   audioPlayer.value.play()
 }
 
-watch(() => props.initialNextScoreId.value, async () => {
-  await updateQuestionSrc(props.initialNextScoreId.value)
-  { playAudio() } if (props.initialNextScoreId.value)
-  emits('resetAudioFlag')
-})
-watch(() => props.readNextCartaFlag.value, async () => {
-  await updateQuestionSrc(props.nextScoreId.value)
-  { playAudio() } if (props.readNextCartaFlag.value)
+watch(() => props.nextScore.value, async () => {
+  questionSrc.value = props.nextScore.value.answer
+  playAudio()
   emits('resetAudioFlag')
 })
 </script>
@@ -60,8 +50,8 @@ watch(() => props.readNextCartaFlag.value, async () => {
 <template>
   <div>
     <audio ref="audioPlayer">
-      <source :src="questionSrc">
+      <source :src="audio[`${questionSrc}`]">
     </audio>
-    {{ questionSrc }}
+    {{ audio[`${questionSrc}`] }}
   </div>
 </template>
