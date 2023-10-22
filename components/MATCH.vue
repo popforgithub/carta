@@ -148,9 +148,9 @@ const pickNextCardId = async () => {
   }
 }
 
-const nextScoreQuestion = ref('Please wait for the next Question')
+const nextScore: Ref<Score> = ref()
 if (props.initialNextScoreId.value) {
-  nextScoreQuestion.value = (await getScoreById(props.initialNextScoreId.value)).question
+  nextScore.value = await getScoreById(props.initialNextScoreId.value)
 }
 
 const readNextCartaFlag = ref(false)
@@ -183,7 +183,7 @@ watch(() => props.nextScoreId, async () => {
   if (props.nextScoreId.value !== 'endOfTheGame') {
     penaltyDialog.value = false
     scoreDialog.value = true
-    nextScoreQuestion.value = (await getScoreById(props.nextScoreId.value)).question
+    nextScore.value = await getScoreById(props.nextScoreId.value)
     refreshScoreList()
   } else {
     finishFlag.value = true
@@ -207,10 +207,10 @@ watch(() => props.nextScoreId, async () => {
     @close-penalty-dialog="closePenaltyDialog"
   />
   <div>
-    {{ nextScoreQuestion }}
+    {{ nextScore.question }}
     <CARTAREADER
-      :nextScoreId="nextScoreId"
-      :nextScoreQuestion="ref(nextScoreQuestion)"
+      :initial-next-score-id="props.initialNextScoreId"
+      :next-score-id="props.nextScoreId"
       :readNextCartaFlag="ref(readNextCartaFlag)"
       @reset-audio-flag="resetAudioFlag"
     />

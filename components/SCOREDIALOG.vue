@@ -33,7 +33,7 @@ let countdownTimer = null
 
 watch(() => props.scoreDialog.value, () => {
   if (props.scoreDialog.value) {
-    countdown.value = 5 // タイムアウト時間を設定(s)
+    countdown.value = 2 // タイムアウト時間を設定(s)
     countdownTimer = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) {
