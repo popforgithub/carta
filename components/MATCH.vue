@@ -207,7 +207,6 @@ watch(() => props.nextScoreId, async () => {
     @close-penalty-dialog="closePenaltyDialog"
   />
   <div>
-    {{ nextScore.question }}
     <CARTAREADER
       :next-score="ref(nextScore)"
       :readNextCartaFlag="ref(readNextCartaFlag)"

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { filename } from 'pathe/utils'
 type Score = {
   id: string
   cardId: string
@@ -22,36 +21,42 @@ const emits = defineEmits<{
   (e: 'resetAudioFlag'): void
 }>()
 
-const questionSrc = ref(props.nextScore.value.answer)
-const glob = import.meta.glob('@/assets/cartaQuestion/LinuxCommandBeginner/*.mp3', { eager: true })
-const audio = Object.fromEntries(
-  Object.entries(glob).map(([key, value]) => [filename(key), value.default])
-)
-// const updateQuestionSrc = async (scoreId: string) => {
-//   console.log('!!!!!!!!', props.nextScore.value.cardSetName, props.nextScore.value.answer)
-//   questionSrc.value = new URL(`/assets/cartaQuestion/${props.nextScore.value.cardSetName}/${props.nextScore.value.answer}.mp3`, import.meta.url).href
-//   // questionSrc.value = new URL(`/assets/cartaQuestion/LinuxCommandBeginner/cat.mp3`, import.meta.url).href
-//   console.log('!!!!!!!!', questionSrc.value)
-// }
-const audioPlayer = ref<HTMLAudioElement | null>(null)
+const questionSrc = ref(`/assets/cartaQuestion/${props.nextScore.value.cardSetName}/${props.nextScore.value.answer}.mp3`)
+const updateQuestionSrc = async () => {
+  questionSrc.value = questionSrc.value = `/assets/cartaQuestion/${props.nextScore.value.cardSetName}/${props.nextScore.value.answer}.mp3`
+}
 
+const audioPlayer = ref<HTMLAudioElement | null>(null)
 const playAudio = async () => {
-  audioPlayer.value.load()
   audioPlayer.value.play()
+}
+const loadAudio = async () => {
+  updateQuestionSrc()
+  audioPlayer.value.load()
 }
 
 watch(() => props.nextScore.value, async () => {
-  questionSrc.value = props.nextScore.value.answer
+  if (props.nextScore.value) {
+    loadAudio()
+    emits('resetAudioFlag')
+  }
+})
+watch(() => props.readNextCartaFlag.value, async () => {
+  if (props.readNextCartaFlag.value) {
+    playAudio()
+    emits('resetAudioFlag')
+  }
+})
+
+onMounted(() => {
   playAudio()
-  emits('resetAudioFlag')
 })
 </script>
 
 <template>
   <div>
     <audio ref="audioPlayer">
-      <source :src="audio[`${questionSrc}`]">
+      <source :src="questionSrc">
     </audio>
-    {{ audio[`${questionSrc}`] }}
   </div>
 </template>
