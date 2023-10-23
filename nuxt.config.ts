@@ -44,6 +44,13 @@ export default defineNuxtConfig({
       define: {
           'process.env.DEBUG': false,
       },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            additionalData: '@use "@/assets/_variables.scss";',
+          },
+        },
+      },
   },
-  css: ['@/assets/main.scss'],
+  css: ['@/assets/main.scss', '@mdi/font/css/materialdesignicons.css'],
 })

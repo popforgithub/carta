@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { match } from 'assert';
 import ReconnectingWebSocket from 'reconnecting-websocket'
-import { ulid } from 'ulidx';
-import User from '~/domain/User';
 
-const session = useCookie('session')
+const matchFlag = ref(false)
+const roomId = ref('')
+const score = ref()
+const initialNextScoreId = ref('')
+const nextScoreId = ref('')
+const matchId = ref('')
+const finishFlag = ref(false)
 
-const inputUserName: Ref<string> = ref('')
-let sessionUser: Ref<{id: string, name: string}> = ref()
-const inputUserId: string = ''
-const { data: userList } = await useLazyFetch('/api/users',
-  { 
-    method: 'get',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-)
+// websocket関連----------------------------------------------------------
+const message = ref({})
+const wsConnections = ref(0)
 // WebSocketのクライアントの生成
 let ws = new ReconnectingWebSocket("ws://localhost:5000")
 
@@ -25,97 +21,130 @@ ws.onopen = async (event) => {
   console.log(event.type, event)
 }
 
-const sendMessage = () => {
+const joinRoom = (room) => {
   // サーバへのデータ送信
-  ws.send(JSON.stringify({ action: "sendMessageToAll" ,body: message.value }))
+  ws.send(JSON.stringify({ action: "joinRoom", body: room}))
+}
+
+const leaveRoom = (room) => {
+  // サーバへのデータ送信
+  ws.send(JSON.stringify({ action: "leaveRoom", body: room}))
+}
+
+const startMatch = (room, initialNextScoreId) => {
+  // サーバへのデータ送信
+  ws.send(JSON.stringify({ action: "startMatch", body: [room.id, initialNextScoreId]}))
+}
+
+const takeCard = (score, nextScoreId) => {
+  ws.send(JSON.stringify({ action: "takeCard", body: [score, nextScoreId]}))
+}
+
+const finishGame = (scoreId, roomId) => {
+  ws.send(JSON.stringify({ action: "finishGame", body: [scoreId, roomId]}))
+}
+
+const reconnectMatch = (roomID: string) => {
+  roomId.value = roomID
+  matchFlag.value = true
+  ws.send(JSON.stringify({ action: "reconnectMatch", body: roomID}))
 }
 
 // サーバからのデータ受信時に呼ばれる
 ws.onmessage = async (event) => {
-  // const senderId = JSON.parse(event.data).id 
-  // const user = JSON.parse(event.data).echo
-  // users.value.unshift(user)
-//   await useFetch('/api/users',
-//     { 
-//       method: 'post',
-//       body: { 
-//         content: message.value
-//       },
-//       headers: {
-//         'Content-Type': 'application/json'
-//       }
-//     }
-//   )
+  if (JSON.parse(event.data).echo) { message.value = JSON.parse(event.data).echo }
+  if (JSON.parse(event.data).wsConnections) { wsConnections.value = JSON.parse(event.data).wsConnections }
+  if (JSON.parse(event.data).roomId) { roomId.value = JSON.parse(event.data).roomId }
+  if (JSON.parse(event.data).matchFlag) { matchFlag.value = JSON.parse(event.data).matchFlag }
+  if (JSON.parse(event.data).score) { score.value = JSON.parse(event.data).score }
+  if (JSON.parse(event.data).matchId) { matchId.value = JSON.parse(event.data).matchId }
+  if (JSON.parse(event.data).finishFlag) {
+    finishFlag.value = true
+    matchFlag.value = false
+  }
+  if (JSON.parse(event.data).initialNextScoreId) { initialNextScoreId.value = JSON.parse(event.data).initialNextScoreId }
+  if (JSON.parse(event.data).nextScoreId) { nextScoreId.value = JSON.parse(event.data).nextScoreId }
 }
 
 const closeConnection = () => {
   // 切断
   ws.close()
 }
+// -------------------------------------------------------------------------
 
-const findUserById = async (session) => {
-  const { data: userResponse } = await useFetch('/api/users/:id',
-    { 
-      method: 'get',
-      params: { id: session},
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  return userResponse
+const isRecognized = ref(false)
+const pageName = ref('PLAY')
+const pageSelect = async (pagename) => {
+  pageName.value = pagename
 }
-if (session) {
-  sessionUser = await findUserById(session)
+const sessionUser: Ref<{id: string, name: string}> = ref()
+const receiveSessionUser = async (user) => {
+  sessionUser.value = user
+  isRecognized.value = true
 }
-
-const createUser = async () => {
-  session.value = ulid()
-  await useFetch('/api/users',
-    { 
-      method: 'post',
-      body: { 
-        id: session,
-        name: inputUserName
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-}
-
-const deleteUser = async () => {
-  await useFetch('/api/users/:id',
-    { 
-      method: 'delete',
-      params: { id: inputUserId },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
+const reset = () => {
+  finishFlag.value = false
+  location.reload()
 }
 </script>
 
 <template>
-  <div v-if="!session || sessionUser.id === 'undefined'">
-    <v-text-field v-model="inputUserName" label="あなたの名前を入力してください"/>
-    <v-btn @click="createUser">createUser</v-btn>
-    <v-list>
-      <v-list-item v-for="(t, i) in userList" :key="i">
-        [id:{{ t.id }}] [name:{{ t.name }}]
-      </v-list-item>
-    </v-list>
-    <NuxtLink to="/user">Chat</NuxtLink>
-  </div>
-  <div v-else>
-    こんにちは {{ sessionUser.name }} さん
-    <v-list>
-      <v-list-item v-for="(t, i) in userList" :key="i">
-        [id:{{ t.id }}] [name:{{ t.name }}]
-      </v-list-item>
-    </v-list>
-    <NuxtLink to="/user">Chat</NuxtLink>
-  </div>
+  <v-app>
+    <div v-if="!isRecognized">
+      <SESSION
+        @receive-session-user="receiveSessionUser"
+      />
+    </div>
+    <div v-else>
+      <HEADER
+        :sessionUserName="ref(sessionUser.name)"
+        :wsConnections="ref(wsConnections)"
+        @pageSelect="pageSelect"
+      />
+      <div v-if="finishFlag">
+        <RESULT 
+        :matchId="ref(matchId)"
+        :roomId="ref(roomId)"
+        :resultFlag="true"
+        @reset="reset"
+        />
+      </div>
+      <div v-else>
+        <div v-if="matchFlag && pageName==='PLAY'">
+          <MATCH 
+            :roomId="ref(roomId)"
+            :score="ref(score)"
+            :initialNextScoreId="ref(initialNextScoreId)"
+            :nextScoreId="ref(nextScoreId)"
+            @take-card="takeCard"
+            @finish-game="finishGame"
+          />
+        </div>
+        <div v-else>
+          <div v-if="pageName==='PLAY'">
+            <ROOMLIST
+              :sessionId="ref(sessionUser.id)"
+              :message="ref(message)"
+              @reconnect-match="reconnectMatch"
+              @join-room="joinRoom"
+              @leave-room="leaveRoom"
+              @start-match="startMatch"
+            />
+          </div>
+          <div v-else-if="pageName==='ROOM'">
+            <EDITROOM
+            />
+          </div>
+          <div v-else-if="pageName==='CARD'">
+            <EDITCARDLIST
+            />
+          </div>
+          <div v-else="pageName==='DB'">
+            <EDITDB
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </v-app>
 </template>

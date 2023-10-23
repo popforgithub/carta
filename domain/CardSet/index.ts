@@ -5,9 +5,10 @@ export default class CardSet {
   name: string
 
   constructor(
-    name: string 
+    name: string,
+    id?: string 
   ) {
-    this.id = new CardSetId
     this.name = name
+    id ? this.id = new CardSetId(id) : this.id = new CardSetId
   }
 }
